@@ -27,3 +27,13 @@ template: "simple"
 #     start_tag: '[%'
 #     end_tag:   '%]'
 
+plugins:
+    Thumbnail:
+        cache: var/cache
+        compression: 7
+        quality: 50
+
+accesses:
+    hvordan:
+        sizes: [ '100x100', '200x', '300x' ],
+        targets: [ 'http://hvordan.no.*' ]
