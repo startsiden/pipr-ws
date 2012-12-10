@@ -35,5 +35,5 @@ plugins:
 
 accesses:
     hvordan:
-        sizes: [ '100x100', '200x', '300x' ],
+        sizes: [ '100x100', '200x', '300x' ]
         targets: [ 'http://hvordan.no.*' ]
