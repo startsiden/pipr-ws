@@ -2,7 +2,6 @@ package Pipr::WS;
 use v5.10;
 
 use Dancer;
-use Dancer::Exception::Core::Request;
 use Dancer::Plugin::Thumbnail;
 use Data::Dumper;
 use LWPx::ParanoidAgent;
@@ -11,7 +10,6 @@ use List::Util;
 use Digest::MD5 qw(md5_hex);
 use File::Spec;
 use File::Path;
-use File::Basename;
 use Net::DNS::Resolver;
 use Cwd;
 
@@ -77,11 +75,13 @@ sub download_url {
 
   my $local_file = File::Spec->catfile(config->{'cache_dir'}, _url2file($url));
 
-  File::Path::make_path(File::Basename::dirname($local_file));
-  debug 'dirname: ' . File::Basename::dirname($local_file);
+  File::Path::make_path(dirname($local_file));
+
+  debug 'dirname: ' . dirname($local_file);
   debug 'url: ' . $url;
 
   return $local_file if -e $local_file;
+
   my $res = $ua->get($url, ':content_file' => $local_file);
   if ($res->is_success) {
     print $res->content;  # or whatever
