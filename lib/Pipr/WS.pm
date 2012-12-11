@@ -17,7 +17,24 @@ our $VERSION = '0.1';
 
 get '/' => sub {
     content_type 'text/plain';
-    return Dumper(config->{sites});
+    
+my $ex_uri = uri_for('/hvordan/resized/100x100/http://csp.picsearch.com/img/S/n/6/2/title_Sn62sq8Ywlafge8SgEWyzw');
+
+my $text =<< "TEXT"
+
+Welcome to Pipr - PIcture PRovider
+
+This service lets you scale/crop and modify images on-the-fly and cached. You can perform actions thru the URL.
+
+Example:
+   $ex_uri
+
+Below is the current config in use with allowed targets and sizes.
+
+TEXT
+;
+
+    return $text . Dumper(config->{sites});
 };
 
 get '/*/*/*/**' => sub {
