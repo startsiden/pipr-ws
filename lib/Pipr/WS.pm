@@ -33,8 +33,8 @@ get '/*/*/*/**' => sub {
     return status 'not_found' if ! $site_config;
     var 'site_config' => $site_config;
 
-    return status 'forbidden' if ! List::Util::first { debug "url: $url => $_";    $url =~ m{\A \Q$_\E   }gmx; } @{ $site_config->{allowed_targets} };
-    return status 'forbidden' if ! List::Util::first { debug "params: $params => $_"; $params =~ m{\A \Q$_\E \z}gmx; } @{ $site_config->{sizes}           };
+    return status 'forbidden' if ! List::Util::first { $url    =~ m{\A \Q$_\E   }gmx; } @{ $site_config->{allowed_targets} };
+    return status 'forbidden' if ! List::Util::first { $params =~ m{\A \Q$_\E \z}gmx; } @{ $site_config->{sizes}           };
 
     my $local_image = download_url( $url );
     return status 'not_found' if ! $local_image;
