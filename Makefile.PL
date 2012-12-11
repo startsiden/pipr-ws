@@ -14,9 +14,10 @@ WriteMakefile(
     PREREQ_PM => {
         'Test::More' => 0,
         'YAML'       => 0,
-        'Dancer'     => 1.3091,
+        'Dancer'     => 1.3110,
         'Dancer::Plugin::Thumbnail',
-        'LWPx::ParanoidAgent',
+        'LWPx::ParanoidHandler',
+        'LWP::UserAgent::Cached',
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Pipr-WS-*' },
