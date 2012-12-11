@@ -33,7 +33,9 @@ plugins:
         compression: 7
         quality: 50
 
-accesses:
+sites:
     hvordan:
-        sizes: [ '100x100', '200x', '300x' ]
-        targets: [ 'http://hvordan.no.*' ]
+        sizes: [ '100x100', '200x', '300x', '144x82', '50x50' ]
+        allowed_targets: [ 'http://hvordan.no', 'http://polarboing.com', 'http://csp.picsearch.com' ]
+
+cache_dir: '/tmp/cache'
