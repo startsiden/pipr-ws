@@ -1,0 +1,5 @@
+Makefile
+MYMETA.yml
+cache
+thumb_cache
+logs
