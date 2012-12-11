@@ -15,7 +15,7 @@ WriteMakefile(
         'Test::More' => 0,
         'YAML'       => 0,
         'Dancer'     => 1.3110,
-        'Dancer::Plugin::Thumbnail',
+#        'Dancer::Plugin::Thumbnail',
         'LWPx::ParanoidHandler',
         'LWP::UserAgent::Cached',
     },
