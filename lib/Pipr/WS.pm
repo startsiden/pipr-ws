@@ -60,7 +60,7 @@ get '/*/*/*/**' => sub {
 
     given ($cmd) { 
        when ('resized')   { resize    $local_image => { w => $width, h => $height, s => 'force' }, { format => 'jpeg', quality => '90', } }
-       when ('cropped')   { crop      $local_image => { w => $width }; { format => 'jpeg', quality => '90', } }
+       when ('cropped')   { crop      $local_image => { w => $width }, { format => 'jpeg', quality => '90', } }
        when ('thumbnail') { thumbnail $local_image => [
            crop   => { w => 200, h => 200, a => 'lt' },
            resize => { w => $width, h => $height, s => 'min' },
