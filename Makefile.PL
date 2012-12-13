@@ -23,7 +23,7 @@ WriteMakefile(
            'POSIX',
         'LWPx::ParanoidHandler',
         'LWP::UserAgent::Cached',
-        'Net::DNS::Resolver,
+        'Net::DNS::Resolver',
         'Image::Size',
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
