@@ -1,9 +1,9 @@
-use Test::More tests => 2;
+use Test::More tests => 3;
 use strict;
 use warnings;
 
 # the order is important
-use Pipr::WS;
+use_ok 'Pipr::WS';
 use Dancer::Test;
 
 route_exists [GET => '/'], 'a route handler is defined for /';
