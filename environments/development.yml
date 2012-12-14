@@ -26,11 +26,6 @@ show_errors: 1
 # OR TINY KITTENS SHALL DIE WITH LOTS OF SUFFERING
 auto_reload: 0
 
-sites:
-  test:
-     sizes: [ '30x30', '100x30', '30x', 'x30' ]
-     allowed_targets: [ 'public/images/test.png', 'non-existing-image', 'http://dghasdfguasdfhgiouasdhfguiohsdfg/non-existing-image' ]
-
 # whitelisted_hosts: [ 'localhost', '127.0.0.1' ]
 
 allow_local_access: 1
