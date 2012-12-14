@@ -3,9 +3,16 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Image::Size;
+use File::Temp qw/tempdir/;
 
 use_ok 'Pipr::WS';
 use Dancer::Test;
+
+my $cache       = tempdir( CLEANUP => 1, );
+my $thumb_cache = tempdir( CLEANUP => 1, );
+
+Pipr::WS->config->{'cache_dir'} = $cache;
+Pipr::WS->config->{'plugins'}->{'Thumbnail'}->{'cache'} = $thumb_cache;
 
 response_status_is ['GET' => '/foo'], 404, 'response status is 404 for /foo';
 response_status_is ['GET' => '/resized'], 404, 'response status is 404 for /resized';
