@@ -3,6 +3,7 @@ use v5.10;
 
 use Dancer;
 use Dancer::Plugin::Thumbnail;
+#use Dancer::Plugin::ConfigJFDI;
 use Data::Dumper;
 use LWPx::ParanoidAgent;
 use LWP::UserAgent::Cached;
@@ -16,25 +17,7 @@ use Cwd;
 our $VERSION = '0.1';
 
 get '/' => sub {
-    content_type 'text/plain';
-    
-my $ex_uri = uri_for('/hvordan/resized/100x100/http://csp.picsearch.com/img/S/n/6/2/title_Sn62sq8Ywlafge8SgEWyzw');
-
-my $text =<< "TEXT"
-
-Welcome to Pipr - PIcture PRovider
-
-This service lets you scale/crop and modify images on-the-fly and cached. You can perform actions thru the URL.
-
-Example:
-   $ex_uri
-
-Below is the current config in use with allowed targets and sizes.
-
-TEXT
-;
-
-    return $text . Dumper(config->{sites});
+    template 'index' => { sites => config->{sites} };
 };
 
 get '/*/*/*/**' => sub {
@@ -46,26 +29,40 @@ get '/*/*/*/**' => sub {
     return do { debug 'no url set';     status 'not_found' } if ! $url;
 
     my $site_config = config->{sites}->{ $site };
-    return do { debug 'illegal site';   status 'not_found' } if ! $site_config;
+    if (config->{restrict_targets}) {
+      return do { debug "illegal site: $site";   status 'not_found' } if ! $site_config;
+    }
     var 'site_config' => $site_config;
 
-    debug "checking '$url' with '$params'";
-    return do { debug 'no matching targets'; status 'forbidden' } if ! List::Util::first { $url    =~ m{\A \Q$_\E   }gmx; } @{ $site_config->{allowed_targets} };
-    return do { debug 'no matching sizes';   status 'forbidden' } if ! List::Util::first { $params =~ m{\A \Q$_\E \z}gmx; } @{ $site_config->{sizes}           };
+    my ($format, $offset) = split /,/, $params;
+    my ($x, $y)           = split /x/, $offset || '0x0';
+    my ($width, $height)  = split /x/, $format;
+
+    if (config->{restrict_targets}) {
+      debug "checking '$url' with '$params'";
+      return do { debug 'no matching targets'; status 'forbidden' } if ! List::Util::first { $url    =~ m{\A \Q$_\E   }gmx; } @{ $site_config->{allowed_targets} };
+      return do { debug 'no matching sizes';   status 'forbidden' } if ! List::Util::first { $format =~ m{\A \Q$_\E \z}gmx; } @{ $site_config->{sizes}           };
+    }
 
     my $local_image = download_url( $url );
-    return do { debug 'unable to download picture'; status 'not_found' } if ! $local_image;
+    return do { debug "unable to download picture: $url"; status 'not_found' } if ! $local_image;
 
-    my ($width, $height) = split /x/, $params;
+    my $thumb_cache = File::Spec->catdir(config->{appdir}, config->{plugins}->{Thumbnail}->{cache});
+    File::Path::make_path($thumb_cache) if ! -e $thumb_cache;
 
     given ($cmd) { 
-       when ('resized')   { resize    $local_image => { w => $width, h => $height, s => 'force' }, { format => 'jpeg', quality => '90', } }
-       when ('cropped')   { crop      $local_image => { w => $width, h => $height,              }, { format => 'jpeg', quality => '90', } }
+       when ('resized')   { resize    $local_image => { w => $width, h => $height, s => 'force' }, { format => 'jpeg', quality => '90', cache => $thumb_cache } }
+       when ('cropped')   { thumbnail $local_image => [
+           crop   => { w => $width+$x, h => $height+$y, a => 'lt' },
+           crop   => { w => $width,    h => $height,    a => 'rb' },
+         ],
+         { format => 'jpeg', quality => '90', cache => $thumb_cache };
+       }
        when ('thumbnail') { thumbnail $local_image => [
            crop   => { w => 200, h => 200, a => 'lt' },
            resize => { w => $width, h => $height, s => 'min' },
          ], 
-         { format => 'jpeg', quality => 90 };
+         { format => 'jpeg', quality => 90, cache => $thumb_cache  };
        }
        default             { return do { debug 'illegal command'; status '401'; } }
     }
@@ -78,8 +75,9 @@ sub download_url {
   my $site_config = var 'site_config';
 
   debug config;
+  debug "downloading url: $url";
 
-  if (config->{allow_local_access}) {
+  if (config->{allow_local_access} && $url !~ m{ \A (https?|ftp) }gmx) {
      my $local_file = File::Spec->catfile(config->{appdir}, $url);
      debug "locally accessing $local_file";
      return $local_file if $local_file;
@@ -90,22 +88,20 @@ sub download_url {
   $ua->timeout(10);
   $ua->resolver(Net::DNS::Resolver->new());
 
-  my $local_file = File::Spec->catfile(config->{'cache_dir'}, _url2file($url));
+  my $local_file = File::Spec->catfile((config->{'cache_dir'} !~ m{ \A / }gmx ? config->{appdir} : ()), config->{'cache_dir'}, _url2file($url));
 
   File::Path::make_path(dirname($local_file));
 
-  debug 'dirname: ' . dirname($local_file);
-  debug 'url: ' . $url;
+  debug 'local_file: ' . $local_file;
 
   return $local_file if -e $local_file;
 
+  debug 'fetching from the net...';
+
   my $res = $ua->get($url, ':content_file' => $local_file);
-  if ($res->is_success) {
-    print $res->content;  # or whatever
-  }
-  else {
-    die $res->status_line;
-  }
+  debug $res->status_line if ! $res->is_success;
+
+  return $res->is_success;
 }
 
 sub _url2file {
@@ -115,6 +111,5 @@ sub _url2file {
   my @parts = ( $md5 =~ m/../g );
   File::Spec->catfile(@parts);
 }
-
 
 true;
