@@ -25,6 +25,7 @@ WriteMakefile(
         'LWP::UserAgent::Cached',
         'Net::DNS::Resolver',
         'Image::Size',
+        'Template::Plugin::DataPrinter',
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Pipr-WS-*' },
