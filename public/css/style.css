@@ -1,16 +1,32 @@
 
 body {
-margin: 0;
+margin: 5%;
 margin-bottom: 25px;
 padding: 0;
-background-color: #ddd;
-background-image: url("/images/perldancer-bg.jpg");
+background-color: #fff;
 background-repeat: no-repeat;
 background-position: top left;
 
 font-family: "Lucida Grande", "Bitstream Vera Sans", "Verdana";
 font-size: 13px;
 color: #333;
+}
+
+img.mosaic {
+  float: left;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+}
+
+pre {
+  background-color: black;
+  padding: 2%;
+  color: gray;
+}
+
+pre a {
+  color: lightblue;
 }
 
 h1 {
