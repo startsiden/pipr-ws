@@ -8,8 +8,8 @@ use File::Temp qw/tempdir/;
 use_ok 'Pipr::WS';
 use Dancer::Test;
 
-my $cache       = tempdir( CLEANUP => 1, );
-my $thumb_cache = tempdir( CLEANUP => 1, );
+my $cache       = tempdir( 'pipr-cacheXXXX',       CLEANUP => 1, );
+my $thumb_cache = tempdir( 'pipr-thumb_cacheXXXX', CLEANUP => 1, );
 
 Pipr::WS->config->{'cache_dir'} = $cache;
 Pipr::WS->config->{'plugins'}->{'Thumbnail'}->{'cache'} = $thumb_cache;
