@@ -47,8 +47,7 @@ get '/*/*/*/**' => sub {
     my $local_image = download_url( $url );
     return do { debug "unable to download picture: $url"; status 'not_found' } if ! $local_image;
 
-    my $thumb_cache = File::Spec->catdir(config->{appdir}, config->{plugins}->{Thumbnail}->{cache});
-    File::Path::make_path($thumb_cache) if ! -e $thumb_cache;
+    my $thumb_cache = config->{plugins}->{Thumbnail}->{cache};
 
     given ($cmd) { 
        when ('resized')   { resize    $local_image => { w => $width, h => $height, s => 'force' }, { format => 'jpeg', quality => '90', cache => $thumb_cache } }
@@ -88,7 +87,7 @@ sub download_url {
   $ua->timeout(10);
   $ua->resolver(Net::DNS::Resolver->new());
 
-  my $local_file = File::Spec->catfile((config->{'cache_dir'} !~ m{ \A / }gmx ? config->{appdir} : ()), config->{'cache_dir'}, _url2file($url));
+  my $local_file = File::Spec->catfile((File::Spec->file_name_is_absolute(config->{'cache_dir'}) ? () : config->{appdir}), config->{'cache_dir'}, _url2file($url));
 
   File::Path::make_path(dirname($local_file));
 
