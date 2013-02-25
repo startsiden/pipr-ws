@@ -28,6 +28,12 @@ get '/*/*/*/**' => sub {
     return do { debug 'no params set';  status 'not_found' } if ! $params;
     return do { debug 'no url set';     status 'not_found' } if ! $url;
 
+#    FIXME: Support URLs with GET params
+#    my $rparams = params();
+#    delete $rparams->{splat};
+
+#    $url = join '?', ($url, (join '&', map { $_ . '=' . $rparams->{$_}; } keys %{$rparams}));
+
     my $site_config = config->{sites}->{ $site };
     if (config->{restrict_targets}) {
       return do { debug "illegal site: $site";   status 'not_found' } if ! $site_config;
@@ -100,7 +106,7 @@ sub download_url {
   my $res = $ua->get($url, ':content_file' => $local_file);
   debug $res->status_line if ! $res->is_success;
 
-  return $res->is_success;
+  return ($res->is_success ? $local_file : $res->is_success);
 }
 
 sub _url2file {
