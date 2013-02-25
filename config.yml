@@ -42,9 +42,11 @@ sites:
      sizes: [ '30x30', '100x30', '30x', 'x30' ]
      allowed_targets: [ 'public/images/test.png', 'non-existing-image', 'http://dghasdfguasdfhgiouasdhfguiohsdfg/non-existing-image' ]
   demo:
-     sizes: [ '100x', '100x100', '200x', '300x', '144x82', '50x50', '76.8x43.2', '300x50' ]
+     sizes: [ '100x', '100x100', '200x', '300x', '144x82', '50x50', '76.8x43.2', '300x50', '169x169' ]
      allowed_targets: [ 'http://csp.picsearch.com' ]
   hvordan:
-     sizes: [ '100x', '100x100', '200x', '300x', '144x82', '50x50' ]
+     sizes: [ '100x', '100x100', '200x', '300x', '144x82', '50x50', '169x169' ]
      allowed_targets: [ 'http://hvordan.no', 'http://csp.picsearch.com' ]
-
+  overblikk:
+     sizes: [ '600x200', '300x300', '600x300', '200x600' ]
+     allowed_targets: [ 'http' ]
