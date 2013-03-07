@@ -5,6 +5,7 @@ use Dancer;
 use Dancer::Plugin::Thumbnail;
 #use Dancer::Plugin::ConfigJFDI;
 use Data::Dumper;
+use Encode;
 use LWPx::ParanoidAgent;
 use LWP::UserAgent::Cached;
 use List::Util;
@@ -112,7 +113,7 @@ sub download_url {
 sub _url2file {
   my ($url) = @_;
 
-  my $md5 = md5_hex($url);
+  my $md5 = md5_hex(encode_utf8($url));
   my @parts = ( $md5 =~ m/../g );
   File::Spec->catfile(@parts);
 }
