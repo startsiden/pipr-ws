@@ -29,11 +29,10 @@ get '/*/*/*/**' => sub {
     return do { debug 'no params set';  status 'not_found' } if ! $params;
     return do { debug 'no url set';     status 'not_found' } if ! $url;
 
-#    FIXME: Support URLs with GET params
-#    my $rparams = params();
-#    delete $rparams->{splat};
+    my $rparams = params();
+    my $str_params = join "&", map { "$_=" . $rparams->{$_} } grep { $_ ne 'splat' } keys %{ $rparams };
 
-#    $url = join '?', ($url, (join '&', map { $_ . '=' . $rparams->{$_}; } keys %{$rparams}));
+    $url = join "?", ($url, $str_params) if $str_params;
 
     my $site_config = config->{sites}->{ $site };
     if (config->{restrict_targets}) {
