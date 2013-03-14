@@ -14,6 +14,8 @@ use File::Spec;
 use File::Path;
 use Net::DNS::Resolver;
 use Cwd;
+use URI::Escape;
+
 
 our $VERSION = '0.1';
 
@@ -22,8 +24,13 @@ get '/' => sub {
 };
 
 get '/*/*/*/**' => sub {
-  my ($site, $cmd, $params, $url) = splat;
+    my ($site, $cmd, $params, $url) = splat;
+
+    # if we get an URL like: http://pipr.opentheweb.org/overblikk/resized/300x200/http://g.api.no/obscura/external/9E591A/100x510r/http%3A%2F%2Fnifs-cache.api.no%2Fnifs-static%2Fgfx%2Fspillere%2F100%2Fp1172.jpg
+    # We want to re-escape the external URL in the URL (everything is unescaped on the way in)
     $url = join '/', @{ $url };
+    $url =~ s{ \A (.+) (http://.*) \z }{ $1 . URI::Escape::uri_escape($2)}ex;
+
     return do { debug 'no site set';    status 'not_found' } if ! $site;
     return do { debug 'no command set'; status 'not_found' } if ! $cmd;
     return do { debug 'no params set';  status 'not_found' } if ! $params;
