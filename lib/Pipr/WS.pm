@@ -6,6 +6,7 @@ use Dancer::Plugin::Thumbnail;
 #use Dancer::Plugin::ConfigJFDI;
 use Data::Dumper;
 use Encode;
+use Image::Size;
 use LWPx::ParanoidAgent;
 use LWP::UserAgent::Cached;
 use List::Util;
@@ -23,23 +24,28 @@ get '/' => sub {
     template 'index' => { sites => config->{sites} };
 };
 
+get '/*/dims/**' => sub {
+  my ($site, $url) = splat;
+
+  $url = get_url($url);
+  
+  my $local_image = download_url( $url );
+
+  my ($width, $height, $type) = Image::Size::imgsize($local_image);
+
+  content_type 'application/json';
+  return to_json { image => { type => lc $type, width => $width, height => $height } };
+};
+
 get '/*/*/*/**' => sub {
     my ($site, $cmd, $params, $url) = splat;
 
-    # if we get an URL like: http://pipr.opentheweb.org/overblikk/resized/300x200/http://g.api.no/obscura/external/9E591A/100x510r/http%3A%2F%2Fnifs-cache.api.no%2Fnifs-static%2Fgfx%2Fspillere%2F100%2Fp1172.jpg
-    # We want to re-escape the external URL in the URL (everything is unescaped on the way in)
-    $url = join '/', @{ $url };
-    $url =~ s{ \A (.+) (http://.*) \z }{ $1 . URI::Escape::uri_escape($2)}ex;
+    $url = get_url($url);
 
     return do { debug 'no site set';    status 'not_found' } if ! $site;
     return do { debug 'no command set'; status 'not_found' } if ! $cmd;
     return do { debug 'no params set';  status 'not_found' } if ! $params;
     return do { debug 'no url set';     status 'not_found' } if ! $url;
-
-    my $rparams = params();
-    my $str_params = join "&", map { "$_=" . $rparams->{$_} } grep { $_ ne 'splat' } keys %{ $rparams };
-
-    $url = join "?", ($url, $str_params) if $str_params;
 
     my $site_config = config->{sites}->{ $site };
     if (config->{restrict_targets}) {
@@ -80,7 +86,6 @@ get '/*/*/*/**' => sub {
     }
 };
 
-
 sub download_url {
   my ($url) = @_;
 
@@ -114,6 +119,21 @@ sub download_url {
   debug $res->status_line if ! $res->is_success;
 
   return ($res->is_success ? $local_file : $res->is_success);
+}
+
+sub get_url {
+  my ($url) = @_;
+
+  # if we get an URL like: http://pipr.opentheweb.org/overblikk/resized/300x200/http://g.api.no/obscura/external/9E591A/100x510r/http%3A%2F%2Fnifs-cache.api.no%2Fnifs-static%2Fgfx%2Fspillere%2F100%2Fp1172.jpg
+  # We want to re-escape the external URL in the URL (everything is unescaped on the way in)
+  $url = join '/', @{ $url };
+  $url =~ s{ \A (.+) (http://.*) \z }{ $1 . URI::Escape::uri_escape($2)}ex;
+
+  my $rparams = params();
+  my $str_params = join "&", map { "$_=" . $rparams->{$_} } grep { $_ ne 'splat' } keys %{ $rparams };
+  $url = join "?", ($url, $str_params) if $str_params;
+
+  return $url;
 }
 
 sub _url2file {
