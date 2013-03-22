@@ -39,11 +39,21 @@ restrict_targets: 1
 
 sites:
   test:
-     sizes: [ '30x30', '100x30', '30x', 'x30' ]
+     sizes: [ '30x30', '100x30', '30x', 'x30', '300x', '600x' ]
      allowed_targets: [ 'public/images/test.png', 'non-existing-image', 'http://dghasdfguasdfhgiouasdhfguiohsdfg/non-existing-image' ]
+     watermark: 
+          string: cellbazaar.com
+          font: /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf
+          a: cm
+          color: [ 255, 255, 255 ]
   demo:
      sizes: [ '100x', '100x100', '200x', '300x', '144x82', '50x50', '76.8x43.2', '300x50', '169x169' ]
      allowed_targets: [ 'http://csp.picsearch.com' ]
+     watermark: 
+          string: cellbazaar.com
+          font: /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf
+          a: cm
+          color: [ 255, 255, 255 ]
   hvordan:
      sizes: [ '100x', '100x100', '200x', '300x', '144x82', '50x50', '169x169' ]
      allowed_targets: [ 'http://hvordan.no', 'http://csp.picsearch.com' ]

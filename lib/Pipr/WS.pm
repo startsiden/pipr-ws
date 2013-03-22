@@ -69,7 +69,15 @@ get '/*/*/*/**' => sub {
     my $thumb_cache = config->{plugins}->{Thumbnail}->{cache};
 
     given ($cmd) { 
-       when ('resized')   { resize    $local_image => { w => $width, h => $height, s => 'force' }, { format => 'jpeg', quality => '90', cache => $thumb_cache } }
+       when ('resized')   { thumbnail $local_image => [
+           resize => { w => $width, h => $height, s => 'force' },
+           (
+               $site_config->{watermark} 
+               ? ( watermark => $site_config->{watermark} ) 
+               : (                                        )
+           ),
+         ], 
+         { format => 'jpeg', quality => '90', cache => $thumb_cache } }
        when ('cropped')   { thumbnail $local_image => [
            crop   => { w => $width+$x, h => $height+$y, a => 'lt' },
            crop   => { w => $width,    h => $height,    a => 'rb' },

@@ -17,6 +17,7 @@ WriteMakefile(
         'Dancer'     => 1.3110,
 #        'Dancer::Plugin::Thumbnail',      
            'GD',
+           'GD::Text',
            'JSON::Any',
            'List::Util',
            'Object::Signature',

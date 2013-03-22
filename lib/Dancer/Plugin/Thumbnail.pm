@@ -11,11 +11,14 @@ use Dancer ':syntax';
 use Dancer::MIME;
 use Dancer::Plugin;
 use GD::Image;
+use GD;
+use GD::Text::Align;
 use JSON::Any;
 use List::Util qw( min max );
 use Object::Signature;
 use POSIX 'strftime';
 
+GD::Image->trueColor(1);
 
 =head1 VERSION
 
@@ -296,6 +299,69 @@ sub thumbnail {
 					$dst_w,$dst_h
 				);
 			}
+			when ('watermark') {
+                                # anchors
+                                my ($h_anchor,$v_anchor) =
+                                        ( $args->{ a } || $args->{ anchors } || 'cm' ) =~
+                                        /^([lcr])([tmb])$/ or do {
+                                        error "invalid anchors: '$args->{ anchors }'";
+                                        status 500;
+                                        return '500 Internal Server Error';
+                                };
+                                # create new image
+                                my $w_img = GD::Image->new($src_w,$src_h,1) or do {
+                                        error "can't create image for '$file'";
+                                        status 500;
+                                        return '500 Internal Server Error';
+                                };
+$w_img->alphaBlending(0);
+
+                                my $background = $w_img->colorAllocateAlpha(0,0,0,127); 
+				$w_img->transparent($background);
+
+				my $align_map = {
+					l => 'left',
+					c => 'center',
+					r => 'right',
+					t => 'top',
+					m => 'center',
+					b => 'bottom',
+				};
+
+$w_img->alphaBlending(1);
+                                my $black = $w_img->colorAllocateAlpha(0,0,0,0);
+                                my $foreground_80 = $w_img->colorAllocateAlpha(@{ $args->{color} }, 80);
+                                my $foreground = $w_img->colorAllocateAlpha(@{ $args->{color} }, 0);
+
+				my $align = GD::Text::Align->new($w_img,
+					valign => $align_map->{$v_anchor},
+					halign => $align_map->{$h_anchor},
+				);
+
+                                my $font_size = int ($args->{font_size} || (($src_w * 0.66) / length $args->{string}));
+				$align->set_font([ $args->{font}, gdGiantFont ], $font_size );
+				$align->set_text($args->{string});
+				my @bb = $align->bounding_box(($src_w / 2), ($src_h/2), 0);
+				# you can do things based on the bounding box here
+				$align->set( color => $black );
+				$align->draw(($src_w / 2) + 2, ($src_h/2) + 2, 0);
+				$align->draw(($src_w / 2) + 2, ($src_h/2) - 2, 0);
+				$align->draw(($src_w / 2) - 2, ($src_h/2) + 2, 0);
+				$align->draw(($src_w / 2) - 2, ($src_h/2) - 2, 0);
+				$align->set( color => $foreground_80 );
+				$align->draw(($src_w / 2) + 1, ($src_h/2) + 1, 0);
+				$align->draw(($src_w / 2) + 1, ($src_h/2) - 1, 0);
+				$align->draw(($src_w / 2) - 1, ($src_h/2) + 1, 0);
+				$align->draw(($src_w / 2) - 1, ($src_h/2) - 1, 0);
+				$align->set( color => $foreground );
+				$align->draw(($src_w / 2) + 0, ($src_h/2) + 0, 0);
+#				$w_img->setAntiAliasedDontBlend($background,1); 
+#$w_img->alphaBlending(1);
+
+				blend($src_img, $w_img, 50);
+#                                $dst_img->copyMerge($w_img,0,0,0,0,$src_w,$src_h, 50);
+#                                $dst_img = $src_img;
+                        }
 			default {
 				error "unknown operation '$op'";
 				status 500;
@@ -306,6 +372,9 @@ sub thumbnail {
 		# keep destination image as original
 		($src_img,$src_w,$src_h) = ($dst_img,$dst_w,$dst_h);
 	}
+
+        
+
 
 	# generate image
 	given ( $fmt ) {
@@ -361,6 +430,46 @@ sub thumbnail {
 	header 'Last-Modified'  => $lmod;
 	return $dst_bytes;
 }
+
+sub blend {
+    my ($is, $iw, $percent) = @_;
+
+	warn sprintf("iw->trueColor() = %d$/", $iw->trueColor());
+	warn sprintf("is->trueColor() = %d$/", $is->trueColor());
+	# Turn off alpha-blending temporarily for the watermark image.  If
+	# we don't do this here, as we adjust each pixel colour and call
+	# setPixel(), GD will go through gdAlphaBlend() process for the
+	# current pixel colour and what we want to set the colour to.
+	$iw->alphaBlending(0);
+	# Go through every pixel in the watermark image and adjust the
+	# alpha channel value appropriately.
+	#
+	# This is most likely not portable, as I am not too sure about
+	# then endianess of PNG data.
+	$percent /= 100.0;
+	for (my $h = 0; $h < $iw->height; ++$h) {
+		for (my $x = 0; $x < $iw->width; ++$x) {
+			my ($px, $alpha);
+			# Get pixel's colour value (a.k.a., index)
+			$px = $iw->getPixel($x, $h);
+			# Get the alpha channel value
+			$alpha = ($px >> 24) & 0xff;
+			# If it is completely transparent (0x7f = 127) skip
+			if ($alpha == 127) { next; }
+			$alpha += int((127 - $alpha) * $percent);
+			$alpha = 127 if ($alpha > 127); # Cap (paranoia)
+			# Adjust the new colour value based on the adjusted
+			# alpha channel value and set it.
+			$px = ($px & 0x00ffffff) | ($alpha << 24);
+			$iw->setPixel($x, $h, $px);
+		}
+	}
+	# Turn on alpha-blending now.
+	$iw->alphaBlending(1);
+	# copy watermark onto source image
+	$is->copy($iw, 0, 0, 0, 0, $iw->width, $iw->height);
+}
+
 
 register thumbnail => \&thumbnail;
 
