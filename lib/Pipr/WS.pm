@@ -7,6 +7,7 @@ use Dancer::Plugin::Thumbnail;
 use Data::Dumper;
 use Encode;
 use File::Slurp;
+use File::Type;
 use HTML::TreeBuilder;
 use Image::Size;
 use LWPx::ParanoidAgent;
@@ -30,8 +31,7 @@ get '/*/dims/**' => sub {
 
   $url = get_url($url);
 
-  my $local_image = download_url( $url );
-
+  my $local_image = get_image_from_url( $url );
   my ($width, $height, $type) = Image::Size::imgsize($local_image);
 
   content_type 'application/json';
@@ -64,7 +64,7 @@ get '/*/*/*/**' => sub {
       return do { debug 'no matching sizes';   status 'forbidden' } if ! List::Util::first { $format =~ m{\A \Q$_\E \z}gmx; } @{ $site_config->{sizes}           };
     }
 
-    my $local_image = download_url( $url );
+    my $local_image = get_image_from_url( $url );
     return do { debug "unable to download picture: $url"; status 'not_found' } if ! $local_image;
 
     my $thumb_cache = config->{plugins}->{Thumbnail}->{cache};
@@ -87,8 +87,39 @@ get '/*/*/*/**' => sub {
     }
 };
 
-sub download_url {
+sub get_image_from_url {
   my ($url) = @_;
+
+  debug "lol";
+
+  my $local_image = download_url($url);
+
+  if (File::Type::checktype_filename($local_image) =~ m{ \A image }gmx) {
+debug File::Type::checktype_filename($local_image);
+      return $local_image;
+  }
+
+  debug "fetching image from '$local_image'";
+
+  my $tree = HTML::TreeBuilder->new_from_file($local_image);
+  my $ele = $tree->find_by_attribute('property', 'og:image');
+  my $image_url = $ele && $ele->attr('content');
+
+  if (!$image_url && $url =~ m{ dn\.no }gmx) {
+     $ele = $tree->look_down('_tag' => 'img',sub { defined $_[0]->attr('title') } );
+     $image_url = $ele && $ele->attr('src');
+  }
+  
+  if ($image_url) {
+     debug "fetching: $image_url instead from web page";
+     $local_image = download_url( $image_url, $local_image, 1 );
+  }
+
+  return $local_image;
+}
+
+sub download_url {
+  my ($url, $local_file, $ignore_cache) = @_;
 
   my $site_config = var 'site_config';
 
@@ -106,13 +137,13 @@ sub download_url {
   $ua->timeout(10);
   $ua->resolver(Net::DNS::Resolver->new());
 
-  my $local_file = File::Spec->catfile((File::Spec->file_name_is_absolute(config->{'cache_dir'}) ? () : config->{appdir}), config->{'cache_dir'}, _url2file($url));
+  $local_file ||= File::Spec->catfile((File::Spec->file_name_is_absolute(config->{'cache_dir'}) ? () : config->{appdir}), config->{'cache_dir'}, _url2file($url));
 
   File::Path::make_path(dirname($local_file));
 
   debug 'local_file: ' . $local_file;
 
-  return $local_file if -e $local_file;
+  return $local_file if !$ignore_cache && -e $local_file;
 
   debug 'fetching from the net...';
 
@@ -120,22 +151,6 @@ sub download_url {
   debug $res->status_line if ! $res->is_success;
 
   # Try fetching image from HTML page
-
-  if ($res->is_success && -e $local_file && $res->header("Content-Type") =~ m{\A text/html }gmx) {
-    my $tree = HTML::TreeBuilder->new_from_file($local_file);
-    my $ele = $tree->find_by_attribute('property', 'og:image');
-    my $image_url = $ele && $ele->attr('content');
-
-    if (!$image_url && $url =~ m{ dn\.no }gmx) {
-       $ele = $tree->look_down('_tag' => 'img',sub { defined $_[0]->attr('title') } );
-       $image_url = $ele && $ele->attr('src');
-    }
-
-    debug "fetching: $image_url instead from web page";
-    $res = $ua->get($image_url, ':content_file' => $local_file);
-    debug $res->status_line if ! $res->is_success;
-
-  }
 
   return ($res->is_success ? $local_file : $res->is_success);
 }
