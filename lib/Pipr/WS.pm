@@ -125,6 +125,12 @@ sub download_url {
     my $tree = HTML::TreeBuilder->new_from_file($local_file);
     my $ele = $tree->find_by_attribute('property', 'og:image');
     my $image_url = $ele && $ele->attr('content');
+
+    if (!$image_url && $url =~ m{ dn\.no }gmx) {
+       $ele = $tree->look_down('_tag' => 'img',sub { defined $_[0]->attr('title') } );
+       $image_url = $ele && $ele->attr('src');
+    }
+
     debug "fetching: $image_url instead from web page";
     $res = $ua->get($image_url, ':content_file' => $local_file);
     debug $res->status_line if ! $res->is_success;
