@@ -48,5 +48,5 @@ sites:
      sizes: [ '100x', '100x100', '200x', '300x', '144x82', '50x50', '169x169' ]
      allowed_targets: [ 'http://hvordan.no', 'http://csp.picsearch.com' ]
   overblikk:
-     sizes: [ '600x200', '300x300', '600x300', '200x600' ]
+     sizes: [ '600x200', '300x300', '600x300', '200x600', '150x400', '400x150', '300x200' ]
      allowed_targets: [ 'http' ]
