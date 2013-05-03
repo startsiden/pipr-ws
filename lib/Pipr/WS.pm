@@ -94,11 +94,13 @@ sub get_image_from_url {
   debug "lol";
 
   my $local_image = download_url($url);
+  my $ft = File::Type->new();
 
-  if (File::Type::checktype_filename($local_image) =~ m{ \A image }gmx) {
-debug File::Type::checktype_filename($local_image);
-      return $local_image;
-  }
+  return if ! $local_image;
+  return if ! -e $local_image;
+
+
+  return $local_image if ($ft->checktype_filename($local_image) =~ m{ \A image }gmx);
 
   debug "fetching image from '$local_image'";
 
