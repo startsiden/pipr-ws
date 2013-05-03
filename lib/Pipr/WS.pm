@@ -6,6 +6,8 @@ use Dancer::Plugin::Thumbnail;
 #use Dancer::Plugin::ConfigJFDI;
 use Data::Dumper;
 use Encode;
+use File::Slurp;
+use HTML::TreeBuilder;
 use Image::Size;
 use LWPx::ParanoidAgent;
 use LWP::UserAgent::Cached;
@@ -17,7 +19,6 @@ use Net::DNS::Resolver;
 use Cwd;
 use URI::Escape;
 
-
 our $VERSION = '0.1';
 
 get '/' => sub {
@@ -28,7 +29,7 @@ get '/*/dims/**' => sub {
   my ($site, $url) = splat;
 
   $url = get_url($url);
-  
+
   my $local_image = download_url( $url );
 
   my ($width, $height, $type) = Image::Size::imgsize($local_image);
@@ -68,7 +69,7 @@ get '/*/*/*/**' => sub {
 
     my $thumb_cache = config->{plugins}->{Thumbnail}->{cache};
 
-    given ($cmd) { 
+    given ($cmd) {
        when ('resized')   { resize    $local_image => { w => $width, h => $height, s => 'force' }, { format => 'jpeg', quality => '90', cache => $thumb_cache } }
        when ('cropped')   { thumbnail $local_image => [
            crop   => { w => $width+$x, h => $height+$y, a => 'lt' },
@@ -79,7 +80,7 @@ get '/*/*/*/**' => sub {
        when ('thumbnail') { thumbnail $local_image => [
            crop   => { w => 200, h => 200, a => 'lt' },
            resize => { w => $width, h => $height, s => 'min' },
-         ], 
+         ],
          { format => 'jpeg', quality => 90, cache => $thumb_cache  };
        }
        default             { return do { debug 'illegal command'; status '401'; } }
@@ -118,7 +119,17 @@ sub download_url {
   my $res = $ua->get($url, ':content_file' => $local_file);
   debug $res->status_line if ! $res->is_success;
 
-  warn $res->header("Content-Type");
+  # Try fetching image from HTML page
+
+  if ($res->is_success && -e $local_file && $res->header("Content-Type") =~ m{\A text/html }gmx) {
+    my $tree = HTML::TreeBuilder->new_from_file($local_file);
+    my $ele = $tree->find_by_attribute('property', 'og:image');
+    my $image_url = $ele && $ele->attr('content');
+    debug "fetching: $image_url instead from web page";
+    $res = $ua->get($image_url, ':content_file' => $local_file);
+    debug $res->status_line if ! $res->is_success;
+
+  }
 
   return ($res->is_success ? $local_file : $res->is_success);
 }
