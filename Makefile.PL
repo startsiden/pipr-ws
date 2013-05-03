@@ -21,6 +21,7 @@ WriteMakefile(
            'List::Util',
            'Object::Signature',
            'POSIX',
+        'File::Type',
         'LWPx::ParanoidAgent',
         'LWP::UserAgent::Cached',
         'Net::DNS::Resolver',
