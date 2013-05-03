@@ -18,6 +18,7 @@ use File::Spec;
 use File::Path;
 use Net::DNS::Resolver;
 use Cwd;
+use URI;
 use URI::Escape;
 
 our $VERSION = '0.1';
@@ -109,10 +110,12 @@ debug File::Type::checktype_filename($local_image);
      $ele = $tree->look_down('_tag' => 'img',sub { defined $_[0]->attr('title') } );
      $image_url = $ele && $ele->attr('src');
   }
-  
+
   if ($image_url) {
-     debug "fetching: $image_url instead from web page";
-     $local_image = download_url( $image_url, $local_image, 1 );
+    my $u = URI->new_abs($image_url, $url);
+    $image_url = $u->canonical;
+    debug "fetching: $image_url instead from web page";
+    $local_image = download_url( $image_url, $local_image, 1 );
   }
 
   return $local_image;
