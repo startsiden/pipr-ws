@@ -25,6 +25,8 @@ WriteMakefile(
         'LWP::UserAgent::Cached',
         'Net::DNS::Resolver',
         'Image::Size',
+        'HTML::TreeBuilder',
+        'File::Slurp',
         'Template::Plugin::DataPrinter',
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
