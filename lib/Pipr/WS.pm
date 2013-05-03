@@ -118,6 +118,8 @@ sub download_url {
   my $res = $ua->get($url, ':content_file' => $local_file);
   debug $res->status_line if ! $res->is_success;
 
+  warn $res->header("Content-Type");
+
   return ($res->is_success ? $local_file : $res->is_success);
 }
 
