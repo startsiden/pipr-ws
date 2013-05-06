@@ -104,13 +104,22 @@ sub get_image_from_url {
 
   debug "fetching image from '$local_image'";
 
-  my $tree = HTML::TreeBuilder->new_from_file($local_image);
+  my $content = File::Slurp::read_file($local_image, binmode => ':utf8');
+  my $tree = HTML::TreeBuilder->new_from_content($content);
   my $ele = $tree->find_by_attribute('property', 'og:image');
   my $image_url = $ele && $ele->attr('content');
 
-  if (!$image_url && $url =~ m{ dn\.no }gmx) {
-     $ele = $tree->look_down('_tag' => 'img',sub { defined $_[0]->attr('title') } );
-     $image_url = $ele && $ele->attr('src');
+  if (!$image_url) {
+    $ele = $tree->look_down(
+      '_tag' => 'img',
+      sub {
+        use Data::Dumper;
+        debug "$url: " . $_[0]->as_HTML;
+        ($url =~ m{ dn\.no  }gmx && defined $_[0]->attr('title')) ||
+        ($url =~ m{ nrk\.no }gmx && $_[0]->attr('longdesc'))
+      }
+    );
+    $image_url = $ele && $ele->attr('src');
   }
 
   if ($image_url) {
