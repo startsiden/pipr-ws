@@ -23,6 +23,14 @@ use URI::Escape;
 
 our $VERSION = '0.1';
 
+my $ua = LWPx::ParanoidAgent->new();
+$ua->whitelisted_hosts(@{ config->{whitelisted_hosts} });
+$ua->timeout(10);
+$ua->resolver(Net::DNS::Resolver->new());
+
+my $local_ua = LWP::UserAgent->new();
+$local_ua->protocols_allowed(['file']);
+
 get '/' => sub {
     template 'index' => { sites => config->{sites} };
 };
@@ -91,21 +99,20 @@ get '/*/*/*/**' => sub {
 sub get_image_from_url {
   my ($url) = @_;
 
-  debug "lol";
-
   my $local_image = download_url($url);
   my $ft = File::Type->new();
 
   return if ! $local_image;
   return if ! -e $local_image;
 
-
   return $local_image if ($ft->checktype_filename($local_image) =~ m{ \A image }gmx);
 
   debug "fetching image from '$local_image'";
 
-  my $content = File::Slurp::read_file($local_image, binmode => ':utf8');
-  my $tree = HTML::TreeBuilder->new_from_content($content);
+  my $res = $local_ua->get("file:$local_image");
+
+  my $tree = HTML::TreeBuilder->new_from_content($res->decoded_content);
+
   my $ele = $tree->find_by_attribute('property', 'og:image');
   my $image_url = $ele && $ele->attr('content');
 
@@ -113,9 +120,8 @@ sub get_image_from_url {
     $ele = $tree->look_down(
       '_tag' => 'img',
       sub {
-        use Data::Dumper;
         debug "$url: " . $_[0]->as_HTML;
-        ($url =~ m{ dn\.no  }gmx && defined $_[0]->attr('title')) ||
+        ($url =~ m{ dn\.no | nettavisen.no }gmx && defined $_[0]->attr('title')) ||
         ($url =~ m{ nrk\.no }gmx && $_[0]->attr('longdesc'))
       }
     );
@@ -145,11 +151,6 @@ sub download_url {
      debug "locally accessing $local_file";
      return $local_file if $local_file;
   }
-
-  my $ua = LWPx::ParanoidAgent->new();
-  $ua->whitelisted_hosts(@{ config->{whitelisted_hosts} });
-  $ua->timeout(10);
-  $ua->resolver(Net::DNS::Resolver->new());
 
   $local_file ||= File::Spec->catfile((File::Spec->file_name_is_absolute(config->{'cache_dir'}) ? () : config->{appdir}), config->{'cache_dir'}, _url2file($url));
 
