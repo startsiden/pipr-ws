@@ -16,7 +16,6 @@ use List::Util qw( min max );
 use Object::Signature;
 use POSIX 'strftime';
 
-
 =head1 VERSION
 
 Version 0.07
@@ -24,7 +23,6 @@ Version 0.07
 =cut
 
 our $VERSION = '0.07';
-
 
 =head1 SYNOPSIS
 
@@ -105,265 +103,268 @@ Defaults for these options can be specified in config.yml:
 =cut
 
 sub thumbnail {
-	my ( $file, $opers, $opts ) = @_;
+    my ( $file, $opers, $opts ) = @_;
 
-	# load settings
-	my $conf = plugin_setting;
+    # load settings
+    my $conf = plugin_setting;
 
-	# create absolute path
-	unless ( $file ) {
-		status 404;
-		return '404 Not Found';
-	}
+    # create absolute path
+    unless ($file) {
+        status 404;
+        return '404 Not Found';
+    }
 
-	# create an absolute path
-	$file = path config->{ public }, $file
-		unless $file =~ m{^/};
+    # create an absolute path
+    $file = path config->{public}, $file
+      unless $file =~ m{^/};
 
-	# check for file existance and readabilty
-	unless ( -f $file && -r _ ) {
-		status 404;
-		return '404 Not Found';
-	}
+    # check for file existance and readabilty
+    unless ( -f $file && -r _ ) {
+        status 404;
+        return '404 Not Found';
+    }
 
-	# try to get stat info
-	my @stat = stat $file or do {
-		status 404;
-		return '404 Not Found';
-	};
+    # try to get stat info
+    my @stat = stat $file or do {
+        status 404;
+        return '404 Not Found';
+    };
 
-	# prepare Last-Modified header
-	my $lmod = strftime '%a, %d %b %Y %H:%M:%S GMT', gmtime $stat[9];
+    # prepare Last-Modified header
+    my $lmod = strftime '%a, %d %b %Y %H:%M:%S GMT', gmtime $stat[9];
 
-	# processing conditional GET
-	if ( ( header('If-Modified-Since') || '' ) eq $lmod ) {
-		status 304;
-		return;
-	}
+    # processing conditional GET
+    if ( ( header('If-Modified-Since') || '' ) eq $lmod ) {
+        status 304;
+        return;
+    }
 
-	# target format & content-type
-	my $mime = Dancer::MIME->instance;
-	my $fmt = $opts->{ format } || $conf->{ format } || 'auto';
-	my $type = $fmt eq 'auto' ?
-		$mime->for_file( $file ) :
-		$mime->for_name( $fmt )
-	;
-	( $fmt ) = $type->extensions
-		if $fmt eq 'auto';
+    # target format & content-type
+    my $mime = Dancer::MIME->instance;
+    my $fmt = $opts->{format} || $conf->{format} || 'auto';
+    my $type = $fmt eq 'auto' ? $mime->for_file($file) : $mime->for_name($fmt);
+    ($fmt) = $type->extensions if $fmt eq 'auto';
 
-	# target options
-	my $compression = $fmt eq 'png' ?
-		$opts->{ compression } // $conf->{ compression } // -1 : 0;
-	my $quality = $fmt eq 'jpeg' ?
-		( exists $opts->{ quality } ?
-			$opts->{ quality } :
-			$conf->{ quality } ) :
-			undef;
+    # target options
+    my $compression = $fmt eq 'png' ? $opts->{compression} // $conf->{compression} // -1 : 0;
+    my $quality =
+      $fmt eq 'jpeg'
+      ? (
+        exists $opts->{quality}
+        ? $opts->{quality}
+        : $conf->{quality}
+      )
+      : undef;
 
-	# try to resolve cache directory
-	my $cache_dir = exists $opts->{ cache } ? $opts->{ cache } : $conf->{ cache };
+    # try to resolve cache directory
+    my $cache_dir = exists $opts->{cache} ? $opts->{cache} : $conf->{cache};
 
-	if ( $cache_dir ) {
-		# check for an absolute path of cache directory
-		$cache_dir = path config->{ appdir }, $cache_dir
-			unless $cache_dir =~ m{^/};
+    if ($cache_dir) {
 
-		# check for existance of cache directory
-		unless ( -d $cache_dir && -w _ ) {
-			warning "no cache directory at '$cache_dir'";
-			undef $cache_dir;
-		}
-	}
+        # check for an absolute path of cache directory
+        $cache_dir = path config->{appdir}, $cache_dir
+          unless $cache_dir =~ m{^/};
 
-	# cache path components
-	my ( $cache_key,@cache_hier,$cache_file );
-	if ( $cache_dir ) {
-		# key should include file, operations and calculated defaults
-		$cache_key = Object::Signature::signature(
-			[ $file,$stat[9],$opers,$quality,$compression ]
-		);
-		@cache_hier = map { substr $cache_key,$_->[0],$_->[1] } [0,1],[1,2];
-		$cache_file = path $cache_dir,@cache_hier,$cache_key;
+        # check for existance of cache directory
+        unless ( -d $cache_dir && -w _ ) {
+            warning "no cache directory at '$cache_dir'";
+            undef $cache_dir;
+        }
+    }
 
-		# try to get cached version
-		if ( -f $cache_file ) {
-			open FH, '<:raw', $cache_file or do {
-				error "can't read cache file '$cache_file'";
-				status 500;
-				return '500 Internal Server Error';
-			};
+    # cache path components
+    my ( $cache_key, @cache_hier, $cache_file );
+    if ($cache_dir) {
 
-			# skip meta info
-			local $/ = "\n\n"; <FH>; undef $/;
+        # key should include file, operations and calculated defaults
+        $cache_key = Object::Signature::signature( [ $file, $stat[9], $opers, $quality, $compression ] );
+        @cache_hier = map { substr $cache_key, $_->[0], $_->[1] }[ 0, 1 ], [ 1, 2 ];
+        $cache_file = path $cache_dir, @cache_hier, $cache_key;
 
-			# send useful headers & content
-			content_type $type->type;
-			header 'Last-Modified'  => $lmod;
-			return scalar <FH>;
-		}
-	}
+        # try to get cached version
+        if ( -f $cache_file ) {
+            open FH, '<:raw', $cache_file or do {
+                error "can't read cache file '$cache_file'";
+                status 500;
+                return '500 Internal Server Error';
+            };
 
-	# load source image
-	my $src_img = GD::Image->new( $file ) or do {
-		error "can't load image '$file'";
-		status 500;
-		return '500 Internal Server Error';
-	};
+            # skip meta info
+            local $/ = "\n\n";
+            <FH>;
+            undef $/;
 
-	# original sizes
-	my ($src_w,$src_h) = $src_img->getBounds;
+            # send useful headers & content
+            content_type $type->type;
+            header 'Last-Modified' => $lmod;
+            return scalar <FH>;
+        }
+    }
 
-	# destination image and its serialized form
-	my ($dst_img,$dst_bytes);
+    # load source image
+    my $src_img = GD::Image->new($file) or do {
+        error "can't load image '$file'";
+        status 500;
+        return '500 Internal Server Error';
+    };
 
-	# trasformations loop
-	for ( my $i=0; $i<$#$opers; $i+=2 ) {
-		# next task and its arguments
-		my ($op,$args) = @$opers[$i,$i+1];
+    # original sizes
+    my ( $src_w, $src_h ) = $src_img->getBounds;
 
-		# target sizes
-		my $dst_w = $args->{ w } || $args->{ width };
-		my $dst_h = $args->{ h } || $args->{ height };
+    # destination image and its serialized form
+    my ( $dst_img, $dst_bytes );
 
-		given ( $op ) {
-			when ('resize') {
-				my $scale_mode = $args->{ s } || $args->{ scale } || 'max';
-				do {
-					error "unknown scale mode '$scale_mode'";
-					status 500;
-					return '500 Internal Server Error';
-				} unless $scale_mode ~~ ['max','min','force'];
+    # trasformations loop
+    for ( my $i = 0 ; $i < $#$opers ; $i += 2 ) {
 
-				$scale_mode = 'max' if !($dst_h && $dst_w);
+        # next task and its arguments
+        my ( $op, $args ) = @$opers[ $i, $i + 1 ];
 
-				do {
-                                	# calculate scale
-					no strict 'refs';
-					my $scale = &{ $scale_mode }(
-						grep { $_ } $dst_w && $src_w/$dst_w,
-						            $dst_h && $src_h/$dst_h
-					);
-					$scale = max $scale,1;
+        # target sizes
+        my $dst_w = $args->{w} || $args->{width};
+        my $dst_h = $args->{h} || $args->{height};
 
-					# recalculate target sizes
-					($dst_w,$dst_h) = map { sprintf '%.0f',$_/$scale } $src_w,$src_h;
-				} unless ($scale_mode eq 'force'); 
+        given ($op) {
+            when ('resize') {
+                my $scale_mode = $args->{s} || $args->{scale} || 'max';
+                do {
+                    error "unknown scale mode '$scale_mode'";
+                    status 500;
+                    return '500 Internal Server Error';
+                } unless $scale_mode ~~ [ 'max', 'min', 'force' ];
 
-				# create new image
-				$dst_img = GD::Image->new($dst_w,$dst_h,1) or do {
-					error "can't create image for '$file'";
-					status 500;
-					return '500 Internal Server Error';
-				};
+                $scale_mode = 'max' if !( $dst_h && $dst_w );
 
-				# resize!
-				$dst_img->copyResampled( $src_img,0,0,0,0,
-					$dst_w,$dst_h,$src_w,$src_h
-				);
-			}
-			when ('crop') {
-				$dst_w = min $src_w, $dst_w || $src_w;
-				$dst_h = min $src_h, $dst_h || $src_h;
+                do {
 
-				# anchors
-				my ($h_anchor,$v_anchor) =
-					( $args->{ a } || $args->{ anchors } || 'cm' ) =~
-					/^([lcr])([tmb])$/ or do {
-					error "invalid anchors: '$args->{ anchors }'";
-					status 500;
-					return '500 Internal Server Error';
-				};
+                    # calculate scale
+                    no strict 'refs';
+                    my $scale = &{$scale_mode}(
+                        grep { $_ } $dst_w && $src_w / $dst_w,
+                        $dst_h && $src_h / $dst_h
+                    );
+                    $scale = max $scale, 1;
 
-				# create new image
-				$dst_img = GD::Image->new($dst_w,$dst_h,1) or do {
-					error "can't create image for '$file'";
-					status 500;
-					return '500 Internal Server Error';
-				};
+                    # recalculate target sizes
+                    ( $dst_w, $dst_h ) =
+                      map { sprintf '%.0f', $_ / $scale } $src_w, $src_h;
+                } unless ( $scale_mode eq 'force' );
 
-				# crop!
-				$dst_img->copy( $src_img,0,0,
-					sprintf('%.0f',
-						$h_anchor eq 'l' ? 0 :
-						$h_anchor eq 'c' ? ($src_w-$dst_w)/2 :
-						$src_w - $dst_w
-					),
-					sprintf('%.0f',
-						$v_anchor eq 't' ? 0 :
-						$v_anchor eq 'm' ? ($src_h-$dst_h)/2 :
-						$src_h - $dst_h
-					),
-					$dst_w,$dst_h
-				);
-			}
-			default {
-				error "unknown operation '$op'";
-				status 500;
-				return '500 Internal Server Error';
-			}
-		}
+                # create new image
+                $dst_img = GD::Image->new( $dst_w, $dst_h, 1 ) or do {
+                    error "can't create image for '$file'";
+                    status 500;
+                    return '500 Internal Server Error';
+                };
 
-		# keep destination image as original
-		($src_img,$src_w,$src_h) = ($dst_img,$dst_w,$dst_h);
-	}
+                # resize!
+                $dst_img->copyResampled( $src_img, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h );
+            }
+            when ('crop') {
+                $dst_w = min $src_w, $dst_w || $src_w;
+                $dst_h = min $src_h, $dst_h || $src_h;
 
-	# generate image
-	given ( $fmt ) {
-		when ('gif') {
-			$dst_bytes = $dst_img->$_;
-		}
-		when ('jpeg') {
-			$dst_bytes = $quality ? $dst_img->$_( $quality ) : $dst_img->$_;
-		}
-		when ('png') {
-			$dst_bytes = $dst_img->$_( $compression );
-		}
-		default {
-			error "unknown format '$_'";
-			status 500;
-			return '500 Internal Server Error';
-		}
-	}
+                # anchors
+                my ( $h_anchor, $v_anchor ) = ( $args->{a} || $args->{anchors} || 'cm' ) =~ /^([lcr])([tmb])$/
+                  or do {
+                    error "invalid anchors: '$args->{ anchors }'";
+                    status 500;
+                    return '500 Internal Server Error';
+                  };
 
-	# store to cache (if requested)
-	if ( $cache_file ) {
-		# create cache subdirectories
-		for ( @cache_hier ) {
-			next if -d ( $cache_dir = path $cache_dir,$_ );
-			mkdir $cache_dir or do {
-				error "can't create cache directory '$cache_dir'";
-				status 500;
-				return '500 Internal Server Error';
-			};
-		}
-		open FH, '>:raw', $cache_file or do {
-			error "can't create cache file '$cache_file'";
-			status 500;
-			return '500 Internal Server Error';
-		};
-		# store serialized meta information (for future using)
-		print FH JSON::Any->to_json({
-			args    => \@_,
-			compression => $compression,
-			conf    => $conf,
-			format  => $fmt,
-			lmod    => $lmod,
-			mtime   => $stat[9],
-			quality => $quality,
-			type    => $type->type,
-		}) . "\n\n";
-		# store actual target image
-		print FH $dst_bytes;
-	}
+                # create new image
+                $dst_img = GD::Image->new( $dst_w, $dst_h, 1 ) or do {
+                    error "can't create image for '$file'";
+                    status 500;
+                    return '500 Internal Server Error';
+                };
 
-	# send useful headers & content
-	content_type $type->type;
-	header 'Last-Modified'  => $lmod;
-	return $dst_bytes;
+                # crop!
+                $dst_img->copy(
+                    $src_img, 0, 0,
+                    sprintf( '%.0f',
+                          $h_anchor eq 'l' ? 0
+                        : $h_anchor eq 'c' ? ( $src_w - $dst_w ) / 2
+                        :                    $src_w - $dst_w ),
+                    sprintf( '%.0f',
+                          $v_anchor eq 't' ? 0
+                        : $v_anchor eq 'm' ? ( $src_h - $dst_h ) / 2
+                        :                    $src_h - $dst_h ),
+                    $dst_w, $dst_h
+                );
+            }
+            default {
+                error "unknown operation '$op'";
+                status 500;
+                return '500 Internal Server Error';
+            }
+        }
+
+        # keep destination image as original
+        ( $src_img, $src_w, $src_h ) = ( $dst_img, $dst_w, $dst_h );
+    }
+
+    # generate image
+    given ($fmt) {
+        when ('gif') {
+            $dst_bytes = $dst_img->$_;
+        }
+        when ('jpeg') {
+            $dst_bytes = $quality ? $dst_img->$_($quality) : $dst_img->$_;
+        }
+        when ('png') {
+            $dst_bytes = $dst_img->$_($compression);
+        }
+        default {
+            error "unknown format '$_'";
+            status 500;
+            return '500 Internal Server Error';
+        }
+    }
+
+    # store to cache (if requested)
+    if ($cache_file) {
+
+        # create cache subdirectories
+        for (@cache_hier) {
+            next if -d ( $cache_dir = path $cache_dir, $_ );
+            mkdir $cache_dir or do {
+                error "can't create cache directory '$cache_dir'";
+                status 500;
+                return '500 Internal Server Error';
+            };
+        }
+        open FH, '>:raw', $cache_file or do {
+            error "can't create cache file '$cache_file'";
+            status 500;
+            return '500 Internal Server Error';
+        };
+
+        # store serialized meta information (for future using)
+        print FH JSON::Any->to_json(
+            {
+                args        => \@_,
+                compression => $compression,
+                conf        => $conf,
+                format      => $fmt,
+                lmod        => $lmod,
+                mtime       => $stat[9],
+                quality     => $quality,
+                type        => $type->type,
+            }
+        ) . "\n\n";
+
+        # store actual target image
+        print FH $dst_bytes;
+    }
+
+    # send useful headers & content
+    content_type $type->type;
+    header 'Last-Modified' => $lmod;
+    return $dst_bytes;
 }
 
 register thumbnail => \&thumbnail;
-
 
 =head2 crop ( $file, \%arguments, \%options )
 
@@ -394,9 +395,8 @@ First character can be one of 'l/c/r' (left/right/center), and second - 't/m/b'
 =cut
 
 register crop => sub {
-	thumbnail shift, [ crop => shift ], @_;
+    thumbnail shift, [ crop => shift ], @_;
 };
-
 
 =head2 resize ( $file, \%arguments, \%options )
 
@@ -427,14 +427,11 @@ Argument can be 'min' or 'max' (which is default).
 
 =cut
 
-
 register resize => sub {
-	thumbnail shift, [ resize => shift ], @_;
+    thumbnail shift, [ resize => shift ], @_;
 };
 
-
 register_plugin;
-
 
 =head1 AUTHOR
 
