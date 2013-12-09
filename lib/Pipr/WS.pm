@@ -21,6 +21,7 @@ use Net::DNS::Resolver;
 use Cwd;
 use URI;
 use URI::Escape;
+use MIME::Base64 qw(encode_base64);
 
 our $VERSION = '0.1';
 
@@ -31,6 +32,13 @@ $ua->resolver( Net::DNS::Resolver->new() );
 
 my $local_ua = LWP::UserAgent->new();
 $local_ua->protocols_allowed( ['file'] );
+
+#use GDBM_File; # Need to use this because unlike the others it has no size limit
+use DB_File;
+my %data_storage;
+dbmopen(%data_storage,'/tmp/pipr-ws-data',0666);
+my %meta_storage;
+dbmopen(%meta_storage,'/tmp/pipr-ws-meta',0666);
 
 get '/' => sub {
     template 'index' => { sites => config->{sites} };
@@ -50,6 +58,128 @@ get '/*/dims/**' => sub {
     };
 };
 
+get '/*/fetch/*/**' => sub {
+    my ($site, $params, $url) = splat;
+
+    #config->{charset} = 'ASCII';
+    $url = get_url($url);
+    my $config = {
+        download => 20,
+        max_age  => 60,
+        refresh  =>  0,
+        expire   => 3600*24,
+        site     => $site,
+        url      => $url,
+        in_body  =>  0,
+        };
+    _merge_config( $config, config->{sites}->{ 'default' } );
+    _merge_config( $config, config->{sites}->{ $site } );
+    _merge_config( $config, _get_params($params) );
+
+    #warn Dumper($config);
+    my ($head, $content) = fetch_url($url, $config);
+    #debug $content;
+    header 'X-in-body' => $config->{in_body};
+
+    if ($config->{in_body}) {
+        header 'Content-type' => 'application/octet-stream';
+        return $head . "\n" . $content;
+    } else {
+        foreach my $l (split/\n/, $head) {
+            my ($key, $val) = $l =~ /([^:]+):\s*(.*)/;
+            header $key => $val;
+        }
+        return $content;
+    }
+};
+
+sub fetch_url {
+    my ($url, $conf) = @_;
+    my $content;
+    my $meta = {};
+    my $hash = md5_hex($url);
+    # Fetch metadata
+    if ($conf->{download} < 30) {
+        $meta = get_meta($hash);
+    }
+
+    # Fetch url
+    if ($conf->{download} >= 10
+        && ( ! defined($meta->{max_age})
+            || $conf->{download} >= 20 && $meta->{last_fetched} + $meta->{max_age} < time
+            || $conf->{download} >= 30
+           ) ) {
+        debug "Getting from source";
+        my $res = $ua->get( $url );
+        if ($res->is_success) {
+            $content = $res->decoded_content;
+            debug "utf8::is_utf8: ". utf8::is_utf8($content) . "\n";
+            $meta->{head} = $res->headers->as_string;
+            $meta->{head} .= 'X-remote-code: ' . $res->code . ' ' . $res->message . "\n";
+        }
+    }
+
+    # Store header and body separately to avoid saving body when it's the same?    
+    if (defined($content)) {
+        my $md5sum = md5_hex(encode_utf8($content));
+        if (!defined($meta->{hash}) || $hash ne $meta->{hash}) {
+            $meta->{md5sum} = $md5sum;
+            set_cached($hash, $content);
+        }
+        $meta->{last_fetched} = time;
+    } else {
+        # Get cached
+        debug "Using cached";
+        $content = get_cached($hash);
+    }
+    
+    # Save meta data
+    foreach my $c (qw/max_age expire refresh site/) {
+        $meta->{$c} = $conf->{$c} if ($conf->{$c});
+    }
+    $meta->{last_used} = time;
+    $meta->{url} = $url;
+    set_meta($hash, $meta);
+    
+    #return (decode_utf8($meta->{head}), decode_utf8($content));
+    return ($meta->{head}, $content);
+}
+
+sub get_meta {
+    my $hash = shift;
+    my $data = $meta_storage{$hash};
+    #debug "get_meta $hash\n$data";
+    if ($data) {
+        $data = from_json($data);
+        foreach my $key (keys %$data) {
+            $data->{$key} = decode_utf8($data->{$key});
+        }
+    } else {
+        $data = {};
+    }
+    return $data;
+}
+
+sub set_meta {
+    my ($hash, $data) = @_;
+    $data = encode_utf8(to_json($data));
+    #debug "set_meta $hash\n$data";
+    $meta_storage{$hash} = $data;
+}
+
+sub get_cached {
+    my $hash = shift;
+    my $res = $data_storage{$hash};
+    return $res;
+    return decode_utf8($res);
+}
+
+sub set_cached {
+    my ($hash, $data) = @_;
+    #$data = encode_utf8($data);
+    $data_storage{$hash} = $data;
+}
+ 
 get '/*/*/*/**' => sub {
     my ( $site, $cmd, $params, $url ) = splat;
 
@@ -233,6 +363,36 @@ sub _url2file {
     my $md5 = md5_hex( encode_utf8($url) );
     my @parts = ( $md5 =~ m/../g );
     File::Spec->catfile(@parts);
+}
+
+sub _get_params {
+    my ($params) = @_;
+    
+    my @params = split/,/, $params;
+    my $config = {};
+    
+    foreach my $param (@params) {
+        if ($param =~ /([^=]*)=(.*)/) {
+            $config->{$1} = $2;
+        } else {
+            debug "_get_params could not parse parameter $param\n";
+        }
+    }
+    return $config;
+}
+
+sub _merge_config {
+    my $target = shift;
+    foreach my $source (@_) {
+        if (ref($source) eq "HASH") {
+            while (my ($k, $v) = each %$source) {
+                $target->{$k} = $v;
+            }
+        } elsif(defined($source)) {
+            debug "non hash parameter to _merge_config: " . Dumper($source);
+        }
+    }
+    return 1;
 }
 
 true;
