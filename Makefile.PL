@@ -15,7 +15,7 @@ WriteMakefile(
         'Test::More' => 0,
         'YAML'       => 0,
         'Dancer'     => 1.3110,
-        'Dancer::Plugin::Thumbnail' => 0,
+#        'Dancer::Plugin::Thumbnail' => 0,
            'GD' => 0,
            'JSON::Any' => 0,
            'List::Util' => 0,
