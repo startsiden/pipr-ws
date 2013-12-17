@@ -22,6 +22,9 @@ use Cwd;
 use URI;
 use URI::Escape;
 use MIME::Base64 qw(encode_base64);
+# If Riak is not available, uncomment DB_File and comment Riak
+#use Dancer::Plugin::NullSQL::DB_File;
+use Dancer::Plugin::NullSQL::Riak;
 
 our $VERSION = '0.1';
 
@@ -58,10 +61,10 @@ get '/*/dims/**' => sub {
     };
 };
 
-get '/*/fetch/*/**' => sub {
-    my ($site, $params, $url) = splat;
-
-    #config->{charset} = 'ASCII';
+get '/*/fetch/**' => sub {
+    my ($site, $url) = splat;
+    
+    config->{charset} = '';
     $url = get_url($url);
     my $config = {
         download => 20,
@@ -74,11 +77,9 @@ get '/*/fetch/*/**' => sub {
         };
     _merge_config( $config, config->{sites}->{ 'default' } );
     _merge_config( $config, config->{sites}->{ $site } );
-    _merge_config( $config, _get_params($params) );
-
-    #warn Dumper($config);
+    _merge_config( $config, _get_cache_params(request->header('Cache-Control')) );
+    
     my ($head, $content) = fetch_url($url, $config);
-    #debug $content;
     header 'X-in-body' => $config->{in_body};
 
     if ($config->{in_body}) {
@@ -98,22 +99,31 @@ sub fetch_url {
     my $content;
     my $meta = {};
     my $hash = md5_hex($url);
-    # Fetch metadata
-    if ($conf->{download} < 30) {
+
+    # values for $download:
+    # 0 = only-if-cached (never download)
+    # 1 = max-stale      (download only if there is nothing in cache)
+    # 2 = default        (download if cached content is too old)
+    # 3 = no-cache       (always download)
+    my $download = 2;
+    $download = 0 if $conf->{only_if_cached};
+    $download = 1 if $conf->{max_stale};
+    $download = 3 if $conf->{no_cache};
+
+    if ($download < 3) {
         $meta = get_meta($hash);
     }
 
     # Fetch url
-    if ($conf->{download} >= 10
+    if ($download >= 1
         && ( ! defined($meta->{max_age})
-            || $conf->{download} >= 20 && $meta->{last_fetched} + $meta->{max_age} < time
-            || $conf->{download} >= 30
+            || ($download >= 2 && $meta->{last_fetched} + $meta->{max_age} < time)
+            || $download >= 3
            ) ) {
         debug "Getting from source";
         my $res = $ua->get( $url );
         if ($res->is_success) {
             $content = $res->decoded_content;
-            debug "utf8::is_utf8: ". utf8::is_utf8($content) . "\n";
             $meta->{head} = $res->headers->as_string;
             $meta->{head} .= 'X-remote-code: ' . $res->code . ' ' . $res->message . "\n";
         }
@@ -122,7 +132,8 @@ sub fetch_url {
     # Store header and body separately to avoid saving body when it's the same?    
     if (defined($content)) {
         my $md5sum = md5_hex(encode_utf8($content));
-        if (!defined($meta->{hash}) || $hash ne $meta->{hash}) {
+        if (!defined($meta->{md5sum}) || $md5sum ne $meta->{md5sum}) {
+            debug "storing new or updated content";
             $meta->{md5sum} = $md5sum;
             set_cached($hash, $content);
         }
@@ -141,14 +152,13 @@ sub fetch_url {
     $meta->{url} = $url;
     set_meta($hash, $meta);
     
-    #return (decode_utf8($meta->{head}), decode_utf8($content));
     return ($meta->{head}, $content);
 }
 
 sub get_meta {
     my $hash = shift;
-    my $data = $meta_storage{$hash};
-    #debug "get_meta $hash\n$data";
+    my $data = db_get('meta', $hash);
+
     if ($data) {
         $data = from_json($data);
         foreach my $key (keys %$data) {
@@ -163,21 +173,17 @@ sub get_meta {
 sub set_meta {
     my ($hash, $data) = @_;
     $data = encode_utf8(to_json($data));
-    #debug "set_meta $hash\n$data";
-    $meta_storage{$hash} = $data;
+    db_set('meta', $hash, $data);
 }
 
 sub get_cached {
     my $hash = shift;
-    my $res = $data_storage{$hash};
-    return $res;
-    return decode_utf8($res);
+    return db_get('content', $hash);
 }
 
 sub set_cached {
     my ($hash, $data) = @_;
-    #$data = encode_utf8($data);
-    $data_storage{$hash} = $data;
+    db_set('content', $hash, $data);
 }
  
 get '/*/*/*/**' => sub {
@@ -376,6 +382,25 @@ sub _get_params {
             $config->{$1} = $2;
         } else {
             debug "_get_params could not parse parameter $param\n";
+        }
+    }
+    return $config;
+}
+
+sub _get_cache_params {
+    my ($params) = @_;
+    
+    my @params = split/,\s*/, $params;
+    my $config = {};
+    
+    foreach my $param (@params) {
+        if ($param =~ /([^=]*)=(.*)/) {
+            my ($key, $val) = ($1, $2);
+            $key =~ s/-/_/g;
+            $config->{$key} = $val;
+        } else {
+            $param =~ s/-/_/g;
+            $config->{$param} = 1;
         }
     }
     return $config;

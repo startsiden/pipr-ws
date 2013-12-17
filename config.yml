@@ -5,6 +5,9 @@
 # Your application's name
 appname: "Pipr::WS"
 
+port: 8080
+#port: 4001
+
 # The default layout to use for your application (located in
 # views/layouts/main.tt)
 layout: "main"
@@ -32,6 +35,11 @@ plugins:
         cache: /tmp/pipr/thumb_cache
         compression: 7
         quality: 50
+    NullSQL::DB_File:
+        basepath: /tmp/dancer
+    NullSQL::Riak:
+        host: http://dev-riak1.startsiden.dev:8098
+        ua_timeout: 900
 
 cache_dir: '/tmp/pipr/cache'
 
