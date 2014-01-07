@@ -18,7 +18,7 @@ my $riak;
 Store value in database with key
  
 =cut
- 
+
 register db_set => sub {
     my($self, $bucket, $key, $value) = plugin_args(@_);
     if ( !$riak || !$riak->is_alive() ) {
@@ -42,14 +42,14 @@ register db_get => sub
     my($self, $bucket, $key) = plugin_args(@_);
     if ( !$riak || !$riak->is_alive() ) {
         my $settings = plugin_setting;
-        use Data::Dumper;
-        warn Dumper($settings);
         $riak = Net::Riak->new( %{ $settings } );
     }
     my $b = $riak->bucket($bucket);
     my $obj = $b->get($key);
     if ($obj && $obj->data) {
         return $obj->data;
+    } else {
+        warn "got no object data";
     }
     return undef;
 };

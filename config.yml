@@ -35,6 +35,8 @@ plugins:
         cache: /tmp/pipr/thumb_cache
         compression: 7
         quality: 50
+    NullSQL:
+        driver: DB_File
     NullSQL::DB_File:
         basepath: /tmp/dancer
     NullSQL::Riak:

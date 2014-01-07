@@ -93,10 +93,10 @@ sub _build_ua {
 sub get {
     my ($self, $target) = @_;
     my $url = join('/', $self->proxy_url, $self->source, 'fetch', $target);
-    warn "proxyurl: $url\n";
     my $res;
     $@ = "";
     $self->_ua->default_header('Cache-Control' => $self->get_cache_params);
+
     eval {
         $res = $self->_ua->get( $url );
     };

@@ -22,9 +22,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 use MIME::Base64 qw(encode_base64);
-# If Riak is not available, uncomment DB_File and comment Riak
-#use Dancer::Plugin::NullSQL::DB_File;
-use Dancer::Plugin::NullSQL::Riak;
+use Dancer::Plugin::NullSQL;
 
 our $VERSION = '0.1';
 
@@ -35,13 +33,6 @@ $ua->resolver( Net::DNS::Resolver->new() );
 
 my $local_ua = LWP::UserAgent->new();
 $local_ua->protocols_allowed( ['file'] );
-
-#use GDBM_File; # Need to use this because unlike the others it has no size limit
-use DB_File;
-my %data_storage;
-dbmopen(%data_storage,'/tmp/pipr-ws-data',0666);
-my %meta_storage;
-dbmopen(%meta_storage,'/tmp/pipr-ws-meta',0666);
 
 get '/' => sub {
     template 'index' => { sites => config->{sites} };
@@ -68,8 +59,7 @@ get '/*/fetch/**' => sub {
     $url = get_url($url);
     my $config = {
         download => 20,
-        max_age  => 60,
-        refresh  =>  0,
+        max_age  => 3600,
         expire   => 3600*24,
         site     => $site,
         url      => $url,
@@ -113,40 +103,35 @@ sub fetch_url {
     if ($download < 3) {
         $meta = get_meta($hash);
     }
-
+    
     # Fetch url
     if ($download >= 1
-        && ( ! defined($meta->{max_age})
-            || ($download >= 2 && $meta->{last_fetched} + $meta->{max_age} < time)
+        && ( ! defined($meta->{last_fetched})
+            || ($download >= 2 && ($meta->{last_fetched} + $conf->{max_age}) < time)
             || $download >= 3
            ) ) {
-        debug "Getting from source";
         my $res = $ua->get( $url );
         if ($res->is_success) {
             $content = $res->decoded_content;
+            set_cached($hash, $content);
+            $meta->{md5sum} = md5_hex(encode_utf8($content));
+            $meta->{last_fetched} = time;
             $meta->{head} = $res->headers->as_string;
             $meta->{head} .= 'X-remote-code: ' . $res->code . ' ' . $res->message . "\n";
+        } elsif ($download >= 3) {
+            warn "Don't want cached $url and fetch failed. Not implemented yet.\n";
         }
     }
 
-    # Store header and body separately to avoid saving body when it's the same?    
-    if (defined($content)) {
-        my $md5sum = md5_hex(encode_utf8($content));
-        if (!defined($meta->{md5sum}) || $md5sum ne $meta->{md5sum}) {
-            debug "storing new or updated content";
-            $meta->{md5sum} = $md5sum;
-            set_cached($hash, $content);
-        }
-        $meta->{last_fetched} = time;
-    } else {
+    if (!defined($content) && $download < 3) {
         # Get cached
         debug "Using cached";
         $content = get_cached($hash);
     }
     
     # Save meta data
-    foreach my $c (qw/max_age expire refresh site/) {
-        $meta->{$c} = $conf->{$c} if ($conf->{$c});
+    foreach my $c (qw/expire refresh site/) {
+        $meta->{$c} = $conf->{$c} if (defined($conf->{$c}));
     }
     $meta->{last_used} = time;
     $meta->{url} = $url;
@@ -389,6 +374,7 @@ sub _get_params {
 
 sub _get_cache_params {
     my ($params) = @_;
+    return {} if (!$params);
     
     my @params = split/,\s*/, $params;
     my $config = {};

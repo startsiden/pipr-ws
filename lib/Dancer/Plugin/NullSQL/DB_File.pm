@@ -14,8 +14,6 @@ use Dancer::Plugin;
 use DB_File;
 my $buckets = {};
 {
-    use Data::Dumper;
-    warn Dumper(plugin_setting);
     my $file  = plugin_setting->{'basepath'};
     die "No basepath for DB_File in settings" if (!$file);
 }
