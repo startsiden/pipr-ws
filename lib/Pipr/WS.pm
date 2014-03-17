@@ -180,6 +180,8 @@ sub download_url {
     debug config;
     debug "downloading url: $url";
 
+    $url =~ s{^(https?):/(?:[^/])}{$1/}mx;
+
     if ( config->{allow_local_access} && $url !~ m{ \A (https?|ftp) }gmx ) {
         my $local_file = File::Spec->catfile( config->{appdir}, $url );
         debug "locally accessing $local_file";
