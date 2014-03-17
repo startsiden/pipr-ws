@@ -207,12 +207,12 @@ sub download_url {
 
     debug 'fetching from the net...';
 
-    my $res = $ua->get( $url, ':content_file' => $local_file );
-    debug $res->status_line if !$res->is_success;
+    my $res = eval { $ua->get($url, ':content_file' => $local_file); }; 
+    debug $res->status_line unless ($res && $res->is_success);
 
     # Try fetching image from HTML page
 
-    return ( $res->is_success ? $local_file : $res->is_success );
+    return (($res && $res->is_success) ? $local_file : ($res && $res->is_success));
 }
 
 sub get_url {
