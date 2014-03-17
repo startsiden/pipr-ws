@@ -60,10 +60,10 @@ get '/*/*/*/**' => sub {
     return do { debug 'no params set';  status 'not_found' } if !$params;
     return do { debug 'no url set';     status 'not_found' } if !$url;
 
-    my $site_config = config->{sites}->{$site};
-    if ( config->{restrict_targets} ) {
-        return do { debug "illegal site: $site"; status 'not_found' }
-          if !$site_config;
+    my $site_config = config->{sites}->{ $site };
+    $site_config->{site} = $site;
+    if (config->{restrict_targets}) {
+      return do { debug "illegal site: $site";   status 'not_found' } if ! $site_config;
     }
     var 'site_config' => $site_config;
 
@@ -85,7 +85,7 @@ get '/*/*/*/**' => sub {
     return do { debug "unable to download picture: $url"; status 'not_found' }
       if !$local_image;
 
-    my $thumb_cache = config->{plugins}->{Thumbnail}->{cache};
+    my $thumb_cache = File::Spec->catdir(config->{plugins}->{Thumbnail}->{cache}, $site);
 
     given ($cmd) {
         when ('resized') {
@@ -193,6 +193,7 @@ sub download_url {
             : config->{appdir}
         ),
         config->{'cache_dir'},
+        $site_config->{site},
         _url2file($url)
     );
 
