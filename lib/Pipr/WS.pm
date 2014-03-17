@@ -233,9 +233,11 @@ sub get_url {
 sub _url2file {
     my ($url) = @_;
 
-    my $md5 = md5_hex( encode_utf8($url) );
-    my @parts = ( $md5 =~ m/../g );
-    File::Spec->catfile(@parts);
+  my $md5 = md5_hex(encode_utf8($url));
+  my @parts = ( $md5 =~ m/^(.)(..)/ );
+  $url =~ s/[^A-Za-z0-9_\-\.=?,()\[\]\$^:]/_/gmx;
+
+  File::Spec->catfile(@parts,$url);
 }
 
 true;
