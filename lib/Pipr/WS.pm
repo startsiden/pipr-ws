@@ -241,3 +241,16 @@ sub _url2file {
 }
 
 true;
+
+=pod
+
+=head1 AUTHOR
+ 
+   Nicolas Mendoza <mendoza@pvv.ntnu.no>
+
+=head1 ABSTRACT
+
+   Picture Proxy/Provider/Presenter
+
+=cut
+

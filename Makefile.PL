@@ -1,21 +1,22 @@
-use strict;
-use warnings;
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME                => 'Pipr::WS',
-    AUTHOR              => q{Nicolas Mendoza <mendoza@pvv.ntnu.no>},
-    VERSION_FROM        => 'lib/Pipr/WS.pm',
-    ABSTRACT            => 'Picture Proxy/Provider/Presenter',
-    ($ExtUtils::MakeMaker::VERSION >= 6.3002
-      ? ('LICENSE'=> 'perl')
-      : ()),
-    PL_FILES            => {},
-    PREREQ_PM => {
-        'Test::More' => 0,
-        'YAML'       => 0,
-        'Dancer'     => 1.3110,
-#        'Dancer::Plugin::Thumbnail' => 0,
+name 'Pipr::WS';
+
+# These override things fetched by 'all_from' below.
+# They must come *before* the call to 'all_from'.
+perl_version '5.010001';
+license 'proprietary'; # the license type ('all_from' needs this)
+
+all_from 'lib/Pipr/WS.pm';
+
+configure_requires 'Module::Install' => 0;
+
+# Perl modules needed for running the tests
+test_requires 'Test::More';
+
+# Perl modules needed at run-time
+requires 'YAML';
+requires 'Dancer' => 1.3110;
            'GD' => 0,
            'JSON::Any' => 0,
            'List::Util' => 0,
@@ -29,7 +30,15 @@ WriteMakefile(
         'HTML::TreeBuilder' => 0,
         'File::Slurp' => 0,
         'Template::Plugin::DataPrinter' => 0,
-    },
-    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'Pipr-WS-*' },
-);
+
+
+install_script glob('bin/*');
+
+install_share 'share';
+
+auto_install
+
+tests_recursive;
+
+WriteAll;
+
