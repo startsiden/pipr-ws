@@ -1,6 +1,6 @@
 use inc::Module::Install;
 
-name 'Pipr::WS';
+name 'Pipr-WS';
 
 # These override things fetched by 'all_from' below.
 # They must come *before* the call to 'all_from'.
@@ -17,24 +17,23 @@ test_requires 'Test::More';
 # Perl modules needed at run-time
 requires 'YAML';
 requires 'Dancer' => 1.3110;
-           'GD' => 0,
-           'JSON::Any' => 0,
-           'List::Util' => 0,
-           'Object::Signature' => 0,
-           'POSIX' => 0,
-        'File::Type' => 0,
-        'LWPx::ParanoidAgent' => 0,
-        'LWP::UserAgent::Cached' => 0,
-        'Net::DNS::Resolver' => 0,
-        'Image::Size' => 0,
-        'HTML::TreeBuilder' => 0,
-        'File::Slurp' => 0,
-        'Template::Plugin::DataPrinter' => 0,
-
+requires 'GD' => 0,
+requires 'JSON::Any' => 0,
+requires 'List::Util' => 0,
+requires 'Object::Signature' => 0,
+requires 'POSIX' => 0,
+requires 'File::Type' => 0,
+requires 'LWPx::ParanoidAgent' => 0,
+requires 'LWP::UserAgent::Cached' => 0,
+requires 'Net::DNS::Resolver' => 0,
+requires 'Image::Size' => 0,
+requires 'HTML::TreeBuilder' => 0,
+requires 'File::Slurp' => 0,
+requires 'Template::Plugin::DataPrinter' => 0,
 
 install_script glob('bin/*');
 
-install_share 'share';
+# dont_install_share 'share';
 
 auto_install
 
