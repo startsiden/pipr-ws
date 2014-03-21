@@ -196,10 +196,17 @@ sub download_url {
 
     $url =~ s{^(https?):/(?:[^/])}{$1/}mx;
 
-    if ( config->{allow_local_access} && $url !~ m{ \A (https?|ftp) }gmx ) {
-        my $local_file = File::Spec->catfile( config->{appdir}, $url );
-        debug "locally accessing $local_file";
-        return $local_file if $local_file;
+    if ($url !~ m{ \A (https?|ftp)}gmx) {
+        if ( config->{allow_local_access} ) {
+            my $local_file = File::Spec->catfile( config->{appdir}, $url );
+            debug "locally accessing $local_file";
+            return $local_file if $local_file;
+        }
+
+        if ($site_config->{prefix}) { 
+            $url = File::Spec->catfile($site_config->{prefix}, $url);
+        }
+
     }
 
     $local_file ||= File::Spec->catfile(
