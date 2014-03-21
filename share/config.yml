@@ -51,11 +51,5 @@ sites:
      sizes: [ '972x', '486x', '600x200', '300x300', '600x300', '200x600', '150x400', '400x150', '300x200', '400x200', '200x400' ]
      allowed_targets: [ 'http' ]
   abcn:
-     sizes: [ '600x200', '300x300', '600x300', '200x600', '150x400', '400x150', '300x200', '400x200', '200x400' ]
-     allowed_targets: [ 'http' ]
-  startsiden:
-     sizes: [ '115x65', '680x400', '980x500' ]
+     sizes: [ '972x', '468x' ]
      allowed_targets: [ 'http://www.abcnyheter.no' ]
-
-log: debug
-logger: console
