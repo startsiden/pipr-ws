@@ -53,4 +53,4 @@ sites:
   abcn:
      sizes: [ '972x', '486x' ]
      allowed_targets: [ 'http://www.abcnyheter.no' ]
-     prefix: http://abcnyheter.no/
+     prefix: http://www.abcnyheter.no/
