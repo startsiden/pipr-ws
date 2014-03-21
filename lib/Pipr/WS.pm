@@ -204,7 +204,8 @@ sub download_url {
         }
 
         if ($site_config->{prefix}) { 
-            $url = File::Spec->catfile($site_config->{prefix}, $url);
+            $url =~ s{\A / }{}gmx;
+            $url = $site_config->{prefix} . "/$url";
         }
 
     }
