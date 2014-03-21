@@ -54,3 +54,7 @@ sites:
      sizes: [ '972x', '486x' ]
      allowed_targets: [ 'http://www.abcnyheter.no' ]
      prefix: http://www.abcnyheter.no/
+
+log_path: /var/log
+log_file: pipr-ws_app.log
+
