@@ -51,5 +51,5 @@ sites:
      sizes: [ '972x', '486x', '600x200', '300x300', '600x300', '200x600', '150x400', '400x150', '300x200', '400x200', '200x400' ]
      allowed_targets: [ 'http' ]
   abcn:
-     sizes: [ '972x', '468x' ]
+     sizes: [ '972x', '486x' ]
      allowed_targets: [ 'http://www.abcnyheter.no' ]
