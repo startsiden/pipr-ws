@@ -28,6 +28,7 @@ requires 'LWP::UserAgent::Cached' => 0,
 requires 'Net::DNS::Resolver' => 0,
 requires 'Image::Size' => 0,
 requires 'HTML::TreeBuilder' => 0,
+requires 'File::Share' => 0,
 requires 'File::Slurp' => 0,
 requires 'Template::Plugin::DataPrinter' => 0,
 
