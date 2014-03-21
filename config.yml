@@ -56,3 +56,6 @@ sites:
   startsiden:
      sizes: [ '115x65', '680x400', '980x500' ]
      allowed_targets: [ 'http://www.abcnyheter.no' ]
+
+log: debug
+logger: console

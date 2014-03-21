@@ -33,7 +33,7 @@ requires 'Template::Plugin::DataPrinter' => 0,
 
 install_script glob('bin/*');
 
-# dont_install_share 'share';
+install_share 'share';
 
 auto_install
 

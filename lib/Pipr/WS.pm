@@ -8,6 +8,8 @@ use Dancer::Plugin::Thumbnail;
 use Data::Dumper;
 use Encode;
 use File::Slurp;
+use File::Share ':all';
+use File::Spec;
 use File::Type;
 use HTML::TreeBuilder;
 use Image::Size;
@@ -31,6 +33,12 @@ $ua->resolver( Net::DNS::Resolver->new() );
 
 my $local_ua = LWP::UserAgent->new();
 $local_ua->protocols_allowed( ['file'] );
+
+my $dist_dir = eval { dist_dir('Pipr-WS') } || File::Spec->catdir(config->{appdir}, 'share');
+
+set 'public' => File::Spec->catdir($dist_dir, '/public');
+set 'views'  => File::Spec->catdir($dist_dir, '/views');
+
 
 get '/' => sub {
     template 'index' => { sites => config->{sites} };
@@ -183,7 +191,7 @@ sub download_url {
     $url =~ s{^(https?):/(?:[^/])}{$1/}mx;
 
     if ( config->{allow_local_access} && $url !~ m{ \A (https?|ftp) }gmx ) {
-        my $local_file = File::Spec->catfile( config->{appdir}, $url );
+        my $local_file = File::Spec->catfile( $dist_dir, $url );
         debug "locally accessing $local_file";
         return $local_file if $local_file;
     }
