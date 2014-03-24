@@ -25,7 +25,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '0.1';
+our $VERSION = '14.13.1';
 
 my $ua = LWPx::ParanoidAgent->new();
 $ua->whitelisted_hosts( @{ config->{whitelisted_hosts} } );
@@ -47,7 +47,7 @@ Dancer::Config::load();
 
 
 get '/' => sub {
-    template 'index' => { sites => config->{sites} };
+    template 'index' => { sites => config->{sites} } if config->{environment} ne 'production';
 };
 
 get '/*/dims/**' => sub {

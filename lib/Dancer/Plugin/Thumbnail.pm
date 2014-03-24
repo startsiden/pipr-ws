@@ -10,6 +10,7 @@ use feature 'switch';
 use Dancer ':syntax';
 use Dancer::MIME;
 use Dancer::Plugin;
+use File::Path;
 use GD::Image;
 use JSON::Any;
 use List::Util qw( min max );
@@ -168,7 +169,7 @@ sub thumbnail {
         # check for existance of cache directory
         unless ( -d $cache_dir && -w _ ) {
             warning "no cache directory at '$cache_dir'";
-            undef $cache_dir;
+            File::Path::make_path( $cache_dir ) or undef $cache_dir;
         }
     }
 
