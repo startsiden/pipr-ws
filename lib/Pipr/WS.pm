@@ -47,7 +47,7 @@ Dancer::Config::load();
 
 
 get '/' => sub {
-    template 'index' => { sites => config->{sites} };
+    template 'index' => { sites => config->{sites} } if config->{environment} ne 'production';
 };
 
 get '/*/dims/**' => sub {
