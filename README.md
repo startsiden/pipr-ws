@@ -3,26 +3,31 @@ pipr-ws
 
 Picture provider. Resizes external images and caches them.
 
-Pipr-ws is set up to acept URLs in the form of http://pipr-ws/<consumer_id>/<action>/(<params>|...)/<url>
+Pipr-ws is set up to acept URLs in the form of http://pipr-ws/&lt;consumer_id>/&lt;action>/(&lt;params>|...)/&lt;url>
 
 It will download the page where the URL points to, cache the result forever, perform an action on it and cache the result of the action forever.
 
 In addition if a URL that is not an image is used, it will try to pick out what seems to be most likely the main image of the page.
 
-The primary cache location is set by the 'cache_dir' key in the configuration file 'config.yml' and it uses the <url> as key
+The primary cache location is set by the 'cache_dir' key in the configuration file 'config.yml' and it uses the &lt;url> as key
 
 The secondary cache (after resizing or cropping) is defined in the plugin part and uses the full url including the action and params:
 
+````
 plugins:
     Thumbnail:
         cache: /tmp/pipr/thumb_cache
         compression: 7
         quality: 50
+````
 
 The plugin used to resize is a modified version of Dancer::Plugin::Thumbnail - it uses GD::Image for resizing.
 
 The current configuration is shown together with examples on the root page of the web service.
 
+Example:
+
+````
     abcn   {
         allowed_targets   [
             [0] "http://www.abcnyheter.no",
@@ -34,6 +39,7 @@ The current configuration is shown together with examples on the root page of th
             [1] "486x"
         ]
     },
+````
 
 Means that at http://pipr-ws/abcn/ the following sizes are allowed to be used with the /resized/ action. Only images that are hosted on
 http://www.abcnyheter.no (and relative url 'files') are allowed (allowed_targets), and if a relative URL is given, it will prepend http://www.abcnyheter.no to it (prefix)
