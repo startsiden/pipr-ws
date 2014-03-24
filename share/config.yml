@@ -52,7 +52,7 @@ sites:
      allowed_targets: [ 'http' ]
   abcn:
      sizes: [ '972x', '486x' ]
-     allowed_targets: [ 'http://www.abcnyheter.no', '/files', 'files' ]
+     allowed_targets: [ 'http://www.abcnyheter.no', '/files', 'files', 'http://csp.picsearch.com' ]
      prefix: http://www.abcnyheter.no/
 
 log_path: /var/log
