@@ -25,7 +25,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '14.13.2';
+our $VERSION = '14.13.3';
 
 my $ua = LWPx::ParanoidAgent->new();
 $ua->whitelisted_hosts( @{ config->{whitelisted_hosts} } );
