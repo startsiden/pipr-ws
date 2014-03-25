@@ -45,7 +45,6 @@ set 'views'   => File::Spec->catdir(config->{appdir}, 'views');
 
 Dancer::Config::load();
 
-
 get '/' => sub {
     template 'index' => { sites => config->{sites} } if config->{environment} ne 'production';
 };
@@ -103,7 +102,7 @@ get '/*/*/*/**' => sub {
 
     given ($cmd) {
         when ('resized') {
-            resize $local_image => {
+            return resize $local_image => {
                 w => $width, h => $height, s => 'force'
             },
             {
@@ -111,7 +110,7 @@ get '/*/*/*/**' => sub {
             }
         }
         when ('cropped') {
-            thumbnail $local_image => [
+            return thumbnail $local_image => [
                 crop => {
                     w => $width + $x, h => $height + $y, a => 'lt'
                 },
@@ -124,7 +123,7 @@ get '/*/*/*/**' => sub {
             };
         }
         when ('thumbnail') {
-            thumbnail $local_image => [
+            return thumbnail $local_image => [
                 crop => {
                     w => 200, h => 200, a => 'lt'
                 },
