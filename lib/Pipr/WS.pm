@@ -106,7 +106,7 @@ get '/*/*/*/**' => sub {
                 w => $width, h => $height, s => 'force'
             },
             {
-                format => 'jpeg', quality => '90', cache => $thumb_cache
+                format => 'jpeg', quality => '80', cache => $thumb_cache, compression => 9
             }
         }
         when ('cropped') {
@@ -119,7 +119,7 @@ get '/*/*/*/**' => sub {
                 },
               ],
             {
-                format => 'jpeg', quality => '90', cache => $thumb_cache
+                format => 'jpeg', quality => '80', cache => $thumb_cache, compression => 9
             };
         }
         when ('thumbnail') {
@@ -132,7 +132,7 @@ get '/*/*/*/**' => sub {
                 },
               ],
             {
-                format => 'jpeg', quality => 90, cache => $thumb_cache
+                format => 'jpeg', quality => 80, cache => $thumb_cache, compression => 9
             };
         }
         default {
