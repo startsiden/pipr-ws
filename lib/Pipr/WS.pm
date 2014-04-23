@@ -25,7 +25,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '14.13.9';
+our $VERSION = '14.17.1';
 
 my $ua = LWPx::ParanoidAgent->new();
 $ua->whitelisted_hosts( @{ config->{whitelisted_hosts} } );
@@ -106,7 +106,7 @@ get '/*/*/*/**' => sub {
                 w => $width, h => $height, s => 'force'
             },
             {
-                format => 'jpeg', quality => '90', cache => $thumb_cache
+                format => 'jpeg', quality => '80', cache => $thumb_cache, compression => 9
             }
         }
         when ('cropped') {
@@ -119,7 +119,7 @@ get '/*/*/*/**' => sub {
                 },
               ],
             {
-                format => 'jpeg', quality => '90', cache => $thumb_cache
+                format => 'jpeg', quality => '80', cache => $thumb_cache, compression => 9
             };
         }
         when ('thumbnail') {
@@ -132,7 +132,7 @@ get '/*/*/*/**' => sub {
                 },
               ],
             {
-                format => 'jpeg', quality => 90, cache => $thumb_cache
+                format => 'jpeg', quality => 80, cache => $thumb_cache, compression => 9
             };
         }
         default {
@@ -190,7 +190,6 @@ sub download_url {
 
     my $site_config = var 'site_config';
 
-    debug config;
     debug "downloading url: $url";
 
     $url =~ s{^(https?):/(?:[^/])}{$1/}mx;
