@@ -190,7 +190,6 @@ sub download_url {
 
     my $site_config = var 'site_config';
 
-    debug config;
     debug "downloading url: $url";
 
     $url =~ s{^(https?):/(?:[^/])}{$1/}mx;
