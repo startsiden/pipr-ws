@@ -16,6 +16,7 @@ test_requires 'Test::More';
 
 # Perl modules needed at run-time
 requires 'YAML';
+requires 'Crypt::SSLeay'; # SSL Support
 requires 'Dancer' => 1.3110;
 requires 'GD' => 0,
 requires 'IO::Socket::SSL' => 0,
