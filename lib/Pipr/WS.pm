@@ -26,7 +26,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '14.25.1';
+our $VERSION = '14.25.2';
 
 my $ua = LWPx::ParanoidAgent->new(
       ssl_opts => {
