@@ -117,6 +117,8 @@ get '/*/*/*/**' => sub {
 
     my $thumb_cache = File::Spec->catdir(config->{plugins}->{Thumbnail}->{cache}, $site);
 
+    header('Cache-Control' => 'public, max-age=86400');
+
     given ($cmd) {
         when ('resized') {
             return resize $local_image => {
