@@ -26,7 +26,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '14.25.3';
+our $VERSION = '14.44.1';
 
 use Net::SSL ();
 BEGIN {
