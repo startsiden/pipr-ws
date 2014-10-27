@@ -35,7 +35,7 @@ BEGIN {
        $Net::HTTPS::SSL_SOCKET_CLASS = "Net::SSL"; # Force use of Net::SSL
     }
     $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
-    $ENV{HTTPS_VERSION} = 3;
+#    $ENV{HTTPS_VERSION} = 3;
 }
 
 my $ua = LWPx::ParanoidAgent->new(
