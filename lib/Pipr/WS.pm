@@ -26,7 +26,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '14.25.3';
+our $VERSION = '14.44.1';
 
 use Net::SSL ();
 BEGIN {
@@ -35,7 +35,7 @@ BEGIN {
        $Net::HTTPS::SSL_SOCKET_CLASS = "Net::SSL"; # Force use of Net::SSL
     }
     $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
-    $ENV{HTTPS_VERSION} = 3;
+#    $ENV{HTTPS_VERSION} = 3;
 }
 
 my $ua = LWPx::ParanoidAgent->new(
@@ -116,6 +116,8 @@ get '/*/*/*/**' => sub {
       if !$local_image;
 
     my $thumb_cache = File::Spec->catdir(config->{plugins}->{Thumbnail}->{cache}, $site);
+
+    header('Cache-Control' => 'public, max-age=86400');
 
     given ($cmd) {
         when ('resized') {
