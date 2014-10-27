@@ -41,4 +41,11 @@ is_deeply [imgsize(\$image)], [38,30,'JPG'], 'Correct resized width/height ((38)
 
 response_status_is ['GET' => "/test/resized/30x30/https://www.google.com/images/srpr/logo3w.png"], 403, "not able to fetch illegal images";
 
+Pipr::WS->config->{'sites'}->{'test2'} = {
+  sizes => [ '30x30' ],
+  allowed_targets => [ 'https://www.google.com/' ],
+};
+
+response_status_is ['GET' => "/test2/resized/30x30/https://www.google.com/images/srpr/logo3w.png"], 200, "SSL works";
+
 done_testing;
