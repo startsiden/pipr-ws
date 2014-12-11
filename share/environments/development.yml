@@ -36,3 +36,9 @@ plugins:
     Thumbnail:
         cache: thumb_cache
 
+sites:
+  abcn:
+     sizes: [ '972x', '680x', '486x', '243x' ]
+     allowed_targets: [ 'http://dev.abcnyheter.no', '/files', 'files', 'http://csp.picsearch.com', 'https://abcnyheter.drpublish.aptoma.no/' ]
+     prefix: http://dev.abcnyheter.no/
+
