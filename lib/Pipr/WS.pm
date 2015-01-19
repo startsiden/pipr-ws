@@ -15,7 +15,7 @@ use File::Type;
 use HTML::TreeBuilder;
 use Image::Size;
 use IO::Socket::SSL qw( SSL_VERIFY_NONE );
-use LWPx::ParanoidAgent;
+use Startsiden::LWPx::ParanoidAgent;
 use LWP::UserAgent::Cached;
 use List::Util;
 use Digest::MD5 qw(md5_hex);
@@ -38,16 +38,16 @@ BEGIN {
 #    $ENV{HTTPS_VERSION} = 3;
 }
 
-my $ua = LWPx::ParanoidAgent->new(
+my $ua = Startsiden::LWPx::ParanoidAgent->new(
       ssl_opts => {
          verify_hostname => 0,
          SSL_verify_mode => SSL_VERIFY_NONE,
       },
 );
 
+
 $ua->whitelisted_hosts( @{ config->{whitelisted_hosts} } );
 $ua->timeout(10);
-$ua->resolver( Net::DNS::Resolver->new() );
 
 my $local_ua = LWP::UserAgent->new();
 $local_ua->protocols_allowed( ['file'] );
