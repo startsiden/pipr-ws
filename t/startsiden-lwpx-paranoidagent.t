@@ -13,13 +13,26 @@ my @res1 = $ua->_resolve("www.google.com");
 sleep 1;
 
 my ($res_cached, $expires_at) = @{ $Startsiden::LWPx::ParanoidAgent::cache->get("www.google.com") };
-ok(($expires_at - time) < 60, 'cache ttl is less than 60');
-ok(($expires_at - time) > 58, 'cache ttl is greater than 58');
+ok(($expires_at - time) < 60, 'cache ttl is less than 60:' . ($expires_at - time));
+ok(($expires_at - time) > 58, 'cache ttl is greater than 58:' . ($expires_at - time));
 
-my @res2 = $ua->_resolve("www.google.com");
+my @res_after_cached = $ua->_resolve("www.google.com");
 
 is_deeply(\@res1, $res_cached, 'Same result even if cached');
-is_deeply(\@res1, \@res2, 'Same result after cached');
+is_deeply(\@res1, \@res_after_cached, 'Same result after cached');
+
+$Startsiden::LWPx::ParanoidAgent::cache->clear();
+$Startsiden::LWPx::ParanoidAgent::cache_ttl = 1;
+my @res2 = $ua->_resolve("www.google.com");
+my ($res_cached2, $expires_at2) = @{ $Startsiden::LWPx::ParanoidAgent::cache->get("www.google.com") };
+sleep 1;
+ok(($expires_at2 - time) < 1, 'cache ttl is less than 1:' . ($expires_at2 - time));
+
+$Startsiden::LWPx::ParanoidAgent::cache_ttl = 60;
+sleep 1;
+my @res3 = $ua->_resolve("www.google.com");
+my ($res_cached3, $expires_at3) = @{ $Startsiden::LWPx::ParanoidAgent::cache->get("www.google.com") };
+ok(($expires_at3 - time) > 58, 'cache ttl is greater than 58:' .($expires_at3 - time));
 
 
 done_testing;

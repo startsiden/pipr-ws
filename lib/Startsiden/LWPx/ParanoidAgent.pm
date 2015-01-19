@@ -17,7 +17,7 @@ sub _resolve {
 
     if (my $value = $cache->get($cache_key)) {
         my ($res, $expires_at) = @$value;
-        return @{ $res } if time < $expires_at;
+        return @{ $res } if (time < $expires_at);
         $cache->remove($cache_key);
     }
     my @res = $self->SUPER::_resolve($host, $request, $timeout, $depth);
