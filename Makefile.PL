@@ -25,9 +25,13 @@ requires 'List::Util' => 0,
 requires 'Object::Signature' => 0,
 requires 'POSIX' => 0,
 requires 'File::Type' => 0,
+
+# Will be replaced by Startsiden::LWPx::ParanoidAgent
+requires 'Cache::LRU' => 0,
 requires 'LWPx::ParanoidAgent' => 0,
+
 requires 'LWP::UserAgent::Cached' => 0,
-requires 'Net::DNS::Resolver' => 0,
+requires 'Net::DNS' => 0.81,
 requires 'Image::Size' => 0,
 requires 'HTML::TreeBuilder' => 0,
 requires 'File::Share' => 0,
