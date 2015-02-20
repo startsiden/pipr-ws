@@ -69,7 +69,7 @@ get '/' => sub {
 get '/*/dims/**' => sub {
     my ( $site, $url ) = splat;
 
-    $url = get_url($url);
+    $url = get_url("$site/dims");
 
     my $local_image = get_image_from_url($url);
     my ( $width, $height, $type ) = Image::Size::imgsize($local_image);
@@ -83,7 +83,7 @@ get '/*/dims/**' => sub {
 get '/*/*/*/**' => sub {
     my ( $site, $cmd, $params, $url ) = splat;
 
-    $url = get_url($url);
+    $url = get_url("$site/$cmd/$params");
 
     return do { debug 'no site set';    status 'not_found' } if !$site;
     return do { debug 'no command set'; status 'not_found' } if !$cmd;
@@ -245,7 +245,7 @@ sub download_url {
 
     return $local_file if !$ignore_cache && -e $local_file;
 
-    debug 'fetching from the net...';
+    debug "fetching from the net... ($url)";
 
     my $res = eval { $ua->get($url, ':content_file' => $local_file); }; 
     debug $res->status_line unless ($res && $res->is_success);
@@ -256,18 +256,17 @@ sub download_url {
 }
 
 sub get_url {
-    my ($url) = @_;
+    my ($strip_prefix) = @_;
+
+    my $request_uri = request->request_uri();
+    $request_uri =~ s{ \A /? \Q$strip_prefix\E /? }{}gmx;
 
     # if we get an URL like: http://pipr.opentheweb.org/overblikk/resized/300x200/http://g.api.no/obscura/external/9E591A/100x510r/http%3A%2F%2Fnifs-cache.api.no%2Fnifs-static%2Fgfx%2Fspillere%2F100%2Fp1172.jpg
     # We want to re-escape the external URL in the URL (everything is unescaped on the way in)
-    $url = join '/', @{$url};
-    $url =~ s{ \A (.+) (http://.*) \z }{ $1 . URI::Escape::uri_escape($2)}ex;
+    # NOT needed?
+    #    $request_uri =~ s{ \A (.+) (http://.*) \z }{ $1 . URI::Escape::uri_escape($2)}ex;
 
-    my $rparams    = params();
-    my $str_params = join "&", map { "$_=" . $rparams->{$_} } grep { $_ ne 'splat' } keys %{$rparams};
-    $url = join "?", ( $url, $str_params ) if $str_params;
-
-    return $url;
+    return $request_uri;
 }
 
 sub _url2file {
