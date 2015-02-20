@@ -211,6 +211,13 @@ sub download_url {
 
     debug "downloading url: $url";
 
+    while (my ($path, $target) = each %{$site_config->{shortcuts} || {}}) {
+        if ($url =~ s{ \A /? $path }{}gmx) {
+            $url = sprintf $target, ($url);
+            last;
+        }
+    }
+
     $url =~ s{^(https?):/(?:[^/])}{$1/}mx;
 
     if ($url !~ m{ \A (https?|ftp)}gmx) {
@@ -219,12 +226,6 @@ sub download_url {
             debug "locally accessing $local_file";
             return $local_file if $local_file;
         }
-
-        if ($site_config->{prefix}) { 
-            $url =~ s{\A / }{}gmx;
-            $url = $site_config->{prefix} . "/$url";
-        }
-
     }
 
     $local_file ||= File::Spec->catfile(
