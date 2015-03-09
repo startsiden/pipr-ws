@@ -213,7 +213,7 @@ sub download_url {
 
     while (my ($path, $target) = each %{$site_config->{shortcuts} || {}}) {
         if ($url =~ s{ \A /? $path }{}gmx) {
-            $target = expand_macros($target);
+            $target = expand_macros($target, request->headers->{host});
             $url = sprintf $target, ($url);
             last;
         }
