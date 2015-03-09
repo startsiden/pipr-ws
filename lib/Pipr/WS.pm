@@ -104,7 +104,7 @@ get '/*/*/*/**' => sub {
     if ( config->{restrict_targets} ) {
         debug "checking '$url' with '$params'";
         return do { debug 'no matching targets'; status 'forbidden' }
-          if !List::Util::first { $url =~ m{\A \Q$_\E   }gmx; }
+          if !List::Util::first { $url =~ m{ $_ }gmx; }
             @{ $site_config->{allowed_targets} };
         return do { debug 'no matching sizes'; status 'forbidden' }
           if !List::Util::first { $format =~ m{\A \Q$_\E \z}gmx; }
@@ -213,6 +213,7 @@ sub download_url {
 
     while (my ($path, $target) = each %{$site_config->{shortcuts} || {}}) {
         if ($url =~ s{ \A /? $path }{}gmx) {
+            $target = expand_macros($target);
             $url = sprintf $target, ($url);
             last;
         }
@@ -278,6 +279,16 @@ sub _url2file {
   $url =~ s/[^A-Za-z0-9_\-\.=?,()\[\]\$^:]/_/gmx;
 
   File::Spec->catfile(@parts,$url);
+}
+
+sub expand_macros {
+    my ($str, $host) = @_; 
+
+    $host =~ m{ \A (?:(dev|kua)\.)pipr }gmx;
+    my $env_subdomain = $1 || 'www';
+    $str =~ s{%ENV_SUBDOMAIN%}{$env_subdomain}gmx;
+
+    return $str;
 }
 
 true;
