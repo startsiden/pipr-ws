@@ -284,8 +284,14 @@ sub _url2file {
 sub expand_macros {
     my ($str, $host) = @_; 
 
-    $host =~ m{ \A (?:(dev|kua)\.)pipr }gmx;
-    my $env_subdomain = $1 || 'www';
+    my $map = { 
+      qa  => 'kua',
+      dev => 'dev',
+      kua => 'kua',
+    };
+    
+    $host =~ m{ \A (?:(dev|kua|qa)[\.-])pipr }gmx;
+    my $env_subdomain = $1 && $map->{$1} || 'www';
     $str =~ s{%ENV_SUBDOMAIN%}{$env_subdomain}gmx;
 
     return $str;
