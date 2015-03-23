@@ -52,8 +52,12 @@ sites:
      allowed_targets: [ 'http' ]
   abcn:
      sizes: [ '972x', '680x', '486x', '243x' ]
-     allowed_targets: [ 'http://dev.abcnyheter.no', 'http://www.abcnyheter.no', '/files', 'files', 'http://csp.picsearch.com', 'https://abcnyheter.drpublish.aptoma.no/' ]
-     prefix: http://www.abcnyheter.no/
+     allowed_targets: [ '\A https?://([^/+]\.)?abcnyheter\.no', '/?files', 'drfront', 'http://csp\.picsearch\.com', 'https://abcnyheter\.drpublish\.aptoma\.no/', 'http://smooth-storage\.cdn\.aptoma\.no/' ]
+     shortcuts:
+         /?files: http://%ENV_SUBDOMAIN%.abcnyheter.no/files%s
+         /?drfront: http://smooth-storage.cdn.aptoma.no/users/drf-abcnyheter%s
+
+
 
 log_path: /var/log
 log_file: pipr-ws_app.log

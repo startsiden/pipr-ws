@@ -26,7 +26,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '15.04.1';
+our $VERSION = '15.13.1';
 
 use Net::SSL ();
 BEGIN {
@@ -69,7 +69,7 @@ get '/' => sub {
 get '/*/dims/**' => sub {
     my ( $site, $url ) = splat;
 
-    $url = get_url($url);
+    $url = get_url("$site/dims");
 
     my $local_image = get_image_from_url($url);
     my ( $width, $height, $type ) = Image::Size::imgsize($local_image);
@@ -83,7 +83,7 @@ get '/*/dims/**' => sub {
 get '/*/*/*/**' => sub {
     my ( $site, $cmd, $params, $url ) = splat;
 
-    $url = get_url($url);
+    $url = get_url("$site/$cmd/$params");
 
     return do { debug 'no site set';    status 'not_found' } if !$site;
     return do { debug 'no command set'; status 'not_found' } if !$cmd;
@@ -104,7 +104,7 @@ get '/*/*/*/**' => sub {
     if ( config->{restrict_targets} ) {
         debug "checking '$url' with '$params'";
         return do { debug 'no matching targets'; status 'forbidden' }
-          if !List::Util::first { $url =~ m{\A \Q$_\E   }gmx; }
+          if !List::Util::first { $url =~ m{ $_ }gmx; }
             @{ $site_config->{allowed_targets} };
         return do { debug 'no matching sizes'; status 'forbidden' }
           if !List::Util::first { $format =~ m{\A \Q$_\E \z}gmx; }
@@ -211,6 +211,14 @@ sub download_url {
 
     debug "downloading url: $url";
 
+    while (my ($path, $target) = each %{$site_config->{shortcuts} || {}}) {
+        if ($url =~ s{ \A /? $path }{}gmx) {
+            $target = expand_macros($target, request->headers->{host});
+            $url = sprintf $target, ($url);
+            last;
+        }
+    }
+
     $url =~ s{^(https?):/(?:[^/])}{$1/}mx;
 
     if ($url !~ m{ \A (https?|ftp)}gmx) {
@@ -219,12 +227,6 @@ sub download_url {
             debug "locally accessing $local_file";
             return $local_file if $local_file;
         }
-
-        if ($site_config->{prefix}) { 
-            $url =~ s{\A / }{}gmx;
-            $url = $site_config->{prefix} . "/$url";
-        }
-
     }
 
     $local_file ||= File::Spec->catfile(
@@ -244,7 +246,7 @@ sub download_url {
 
     return $local_file if !$ignore_cache && -e $local_file;
 
-    debug 'fetching from the net...';
+    debug "fetching from the net... ($url)";
 
     my $res = eval { $ua->get($url, ':content_file' => $local_file); }; 
     debug $res->status_line unless ($res && $res->is_success);
@@ -255,18 +257,17 @@ sub download_url {
 }
 
 sub get_url {
-    my ($url) = @_;
+    my ($strip_prefix) = @_;
+
+    my $request_uri = request->request_uri();
+    $request_uri =~ s{ \A /? \Q$strip_prefix\E /? }{}gmx;
 
     # if we get an URL like: http://pipr.opentheweb.org/overblikk/resized/300x200/http://g.api.no/obscura/external/9E591A/100x510r/http%3A%2F%2Fnifs-cache.api.no%2Fnifs-static%2Fgfx%2Fspillere%2F100%2Fp1172.jpg
     # We want to re-escape the external URL in the URL (everything is unescaped on the way in)
-    $url = join '/', @{$url};
-    $url =~ s{ \A (.+) (http://.*) \z }{ $1 . URI::Escape::uri_escape($2)}ex;
+    # NOT needed?
+    #    $request_uri =~ s{ \A (.+) (http://.*) \z }{ $1 . URI::Escape::uri_escape($2)}ex;
 
-    my $rparams    = params();
-    my $str_params = join "&", map { "$_=" . $rparams->{$_} } grep { $_ ne 'splat' } keys %{$rparams};
-    $url = join "?", ( $url, $str_params ) if $str_params;
-
-    return $url;
+    return $request_uri;
 }
 
 sub _url2file {
@@ -274,9 +275,26 @@ sub _url2file {
 
   my $md5 = md5_hex(encode_utf8($url));
   my @parts = ( $md5 =~ m/^(.)(..)/ );
+  $url =~ s/\?(.*)/md5_hex($1)/e;
   $url =~ s/[^A-Za-z0-9_\-\.=?,()\[\]\$^:]/_/gmx;
 
   File::Spec->catfile(@parts,$url);
+}
+
+sub expand_macros {
+    my ($str, $host) = @_; 
+
+    my $map = { 
+      qa  => 'kua',
+      dev => 'dev',
+      kua => 'kua',
+    };
+    
+    $host =~ m{ \A (?:(dev|kua|qa)[\.-])pipr }gmx;
+    my $env_subdomain = $1 && $map->{$1} || 'www';
+    $str =~ s{%ENV_SUBDOMAIN%}{$env_subdomain}gmx;
+
+    return $str;
 }
 
 true;
