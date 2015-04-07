@@ -18,27 +18,27 @@ test_requires 'Test::More';
 requires 'YAML';
 requires 'Crypt::SSLeay'; # SSL Support
 requires 'Dancer' => 1.3118;
-requires 'GD' => 0,
-requires 'IO::Socket::SSL' => 0,
-requires 'JSON::Any' => 0,
-requires 'List::Util' => 0,
-requires 'Object::Signature' => 0,
-requires 'POSIX' => 0,
-requires 'File::Type' => 0,
+requires 'GD' => 0;
+requires 'IO::Socket::SSL' => 0;
+requires 'JSON::Any' => 0;
+requires 'List::Util' => 0;
+requires 'Object::Signature' => 0;
+requires 'POSIX' => 0;
+requires 'File::Type' => 0;
 
 # Will be replaced by Startsiden::LWPx::ParanoidAgent
-requires 'Cache::LRU' => 0,
-requires 'LWPx::ParanoidAgent' => 0,
+requires 'Cache::LRU' => 0;
+requires 'LWPx::ParanoidAgent' => 0;
 
-requires 'LWP::UserAgent::Cached' => 0,
-requires 'Net::DNS' => 0.81,
-requires 'Image::Size' => 0,
-requires 'HTML::TreeBuilder' => 0,
-requires 'File::Share' => 0,
-requires 'File::Slurp' => 0,
-requires 'Template::Plugin::DataPrinter' => 0,
+requires 'LWP::UserAgent::Cached' => 0;
+requires 'Net::DNS' => 0.81;
+requires 'Image::Size' => 0;
+requires 'HTML::TreeBuilder' => 0;
+requires 'File::Share' => 0;
+requires 'File::Slurp' => 0;
+requires 'Template::Plugin::DataPrinter' => 0;
 
-dpkg_requires 'libjs-jquery' => 0,
+dpkg_requires 'libjs-jquery' => 0;
 
 install_script glob('bin/*');
 
