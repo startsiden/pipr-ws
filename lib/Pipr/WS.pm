@@ -26,7 +26,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '15.13.1';
+our $VERSION = '15.13.2';
 
 use Net::SSL ();
 BEGIN {
@@ -211,9 +211,9 @@ sub download_url {
 
     debug "downloading url: $url";
 
-    while (my ($path, $target) = each %{$site_config->{shortcuts} || {}}) {
+    for my $path (keys %{$site_config->{shortcuts} || {}}) {
         if ($url =~ s{ \A /? $path }{}gmx) {
-            $target = expand_macros($target, request->headers->{host});
+            my $target = expand_macros($site_config->{shortcuts}->{$path}, request->headers->{host});
             $url = sprintf $target, ($url);
             last;
         }
@@ -249,7 +249,8 @@ sub download_url {
     debug "fetching from the net... ($url)";
 
     my $res = eval { $ua->get($url, ':content_file' => $local_file); }; 
-    debug $res->status_line unless ($res && $res->is_success);
+    debug "Error getting $url: (".(request->uri).")" . ($res ? $res->status_line : $@) . Dumper($site_config)
+      unless ($res && $res->is_success);
 
     # Try fetching image from HTML page
 
