@@ -202,6 +202,9 @@ sub thumbnail {
         }
     }
 
+    # Do not lose colors on images
+    GD::Image->trueColor(1);
+    
     # load source image
     my $src_img = GD::Image->new($file) or do {
         error "can't load image '$file'";
