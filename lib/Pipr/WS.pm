@@ -90,25 +90,20 @@ get '/*/p/**' => sub {
         return;
     }
 
-    # target format & content-type
-    my $mime = Dancer::MIME->instance;
-    my $fmt = 'auto';
-    my $type = $fmt eq 'auto' ? $mime->for_file($file) : $mime->for_name($fmt);
-    ($fmt) = $type->extensions if $fmt eq 'auto';
-
-    open FH, '<:raw', $file or do {
+    open my $fh, '<:raw', $file or do {
         error "can't read cache file '$file'";
         status 500;
         return '500 Internal Server Error';
     };
 
+    my $ft = File::Type->new();
 
     # send useful headers & content
-    content_type $type->type;
+    content_type $ft->mime_type($file);
     header('Cache-Control' => 'public, max-age=86400');
     header 'Last-Modified' => $lmod;
     undef $/; # slurp
-    return scalar <FH>;
+    return scalar <$fh>;
 
 };
 
