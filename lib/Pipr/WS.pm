@@ -22,6 +22,7 @@ use Digest::MD5 qw(md5_hex);
 use File::Spec;
 use File::Path;
 use Net::DNS::Resolver;
+use POSIX 'strftime';
 use Cwd;
 use URI;
 use URI::Escape;
@@ -64,6 +65,51 @@ Dancer::Config::load();
 
 get '/' => sub {
     template 'index' => { sites => config->{sites} } if config->{environment} ne 'production';
+};
+
+# Proxy images
+get '/*/p/**' => sub {
+    my ( $site, $url ) = splat;
+
+    $url = get_url("$site/p");
+
+    my $file = get_image_from_url($url);
+
+    # try to get stat info
+    my @stat = stat $file or do {
+        status 404;
+        return '404 Not Found';
+    };
+
+    # prepare Last-Modified header
+    my $lmod = strftime '%a, %d %b %Y %H:%M:%S GMT', gmtime $stat[9];
+
+    # processing conditional GET
+    if ( ( header('If-Modified-Since') || '' ) eq $lmod ) {
+        status 304;
+        return;
+    }
+
+    # target format & content-type
+    my $mime = Dancer::MIME->instance;
+    my $fmt = 'auto';
+    my $type = $fmt eq 'auto' ? $mime->for_file($file) : $mime->for_name($fmt);
+    ($fmt) = $type->extensions if $fmt eq 'auto';
+
+    open FH, '<:raw', $file or do {
+        error "can't read cache file '$file'";
+        status 500;
+        return '500 Internal Server Error';
+    };
+
+
+    # send useful headers & content
+    content_type $type->type;
+    header('Cache-Control' => 'public, max-age=86400');
+    header 'Last-Modified' => $lmod;
+    undef $/; # slurp
+    return scalar <FH>;
+
 };
 
 get '/*/dims/**' => sub {
