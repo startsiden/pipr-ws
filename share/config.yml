@@ -55,8 +55,8 @@ sites:
      allowed_targets: [ '\A https?://([^/+]\.)?abcnyheter\.no', '/?files', 'drfront', 'http://csp\.picsearch\.com', 'https://abcnyheter\.drpublish\.aptoma\.no/', 'http://smooth-storage\.cdn\.aptoma\.no/', 'http://ws\.vipr\.startsiden\.no/' , 'https://wsvipr\.startsiden\.no']
      shortcuts:
          /?files: http://%ENV_SUBDOMAIN%.abcnyheter.no/files%s
-         /?drfront: http://smooth-storage.cdn.aptoma.no/users/drf-abcnyheter%s
-
+         /?drf(ront)?: http://smooth-storage.cdn.aptoma.no/users/drf-abcnyheter%s
+         /?drp: https://abcnyheter.drpublish.aptoma.no/out/images/article%s
 
 
 log_path: /var/log
