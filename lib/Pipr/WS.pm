@@ -146,7 +146,7 @@ get '/*/*/*/**' => sub {
         debug "checking '$url' with '$params'";
         return do { debug 'no matching targets'; status 'forbidden' }
           if !List::Util::first { $url =~ m{ $_ }gmx; }
-            @{ $site_config->{allowed_targets}, keys %{ $site_config->{shortcuts} || {} } };
+            @{ $site_config->{allowed_targets} }, keys %{ $site_config->{shortcuts} || {} };
         return do { debug 'no matching sizes'; status 'forbidden' }
           if !List::Util::first { $format =~ m{\A \Q$_\E \z}gmx; }
             @{ $site_config->{sizes} };
