@@ -48,7 +48,7 @@ my $ua = Startsiden::LWPx::ParanoidAgent->new(
 
 
 $ua->whitelisted_hosts( @{ config->{whitelisted_hosts} } );
-$ua->timeout(10);
+$ua->timeout(config->{timeout});
 
 my $local_ua = LWP::UserAgent->new();
 $local_ua->protocols_allowed( ['file'] );

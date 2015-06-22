@@ -27,6 +27,8 @@ engines:
     start_tag: '[%'
     end_tag:   '%]'
 
+timeout: 20
+
 plugins:
     Thumbnail:
         cache: /tmp/pipr/thumb_cache
