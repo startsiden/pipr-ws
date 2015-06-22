@@ -13,8 +13,8 @@ my @res1 = $ua->_resolve("www.google.com");
 sleep 1;
 
 my ($res_cached, $expires_at) = @{ $Startsiden::LWPx::ParanoidAgent::cache->get("www.google.com") };
-ok(($expires_at - time) < 60, 'cache ttl is less than 60: ' . ($expires_at - time));
-ok(($expires_at - time) > 58, 'cache ttl is greater than 58: ' . ($expires_at - time));
+ok(($expires_at - time) < ( 60 * 60 * 24 ), 'cache ttl is less than (60 * 60 * 24): ' . ($expires_at - time));
+ok(($expires_at - time) > ( (60 * 60 * 24) - 2 ), 'cache ttl is greater than ((60 * 60 * 24) - 2): ' . ($expires_at - time));
 
 my @res_after_cached = $ua->_resolve("www.google.com");
 
