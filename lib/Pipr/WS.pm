@@ -27,7 +27,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '15.26.1';
+our $VERSION = '15.26.3';
 
 use Net::SSL ();
 BEGIN {
@@ -47,9 +47,6 @@ my $ua = Startsiden::LWPx::ParanoidAgent->new(
 );
 
 
-$ua->whitelisted_hosts( @{ config->{whitelisted_hosts} } );
-$ua->timeout(10);
-
 my $local_ua = LWP::UserAgent->new();
 $local_ua->protocols_allowed( ['file'] );
 
@@ -62,6 +59,9 @@ set 'public'  => File::Spec->catdir(config->{appdir}, 'public');
 set 'views'   => File::Spec->catdir(config->{appdir}, 'views');
 
 Dancer::Config::load();
+
+$ua->whitelisted_hosts( @{ config->{whitelisted_hosts} } );
+$ua->timeout(config->{timeout});
 
 get '/' => sub {
     template 'index' => { sites => config->{sites} } if config->{environment} ne 'production';
