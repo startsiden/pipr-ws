@@ -15,7 +15,16 @@ while(1) {
             my $t0 = [gettimeofday];
             my $answer = $res->search("$domain");
             my $int = tv_interval($t0);
-            print join " ", ($int > 1 ? " SLOW! " : ""), $int, $answer->answerfrom, $answer->answersize, "$domain:", map { $_->address } grep { $_->type eq "A" } $answer->answer;
+
+            print join " ", (
+                scalar localtime,
+                ($int > 1 ? " SLOW! " : ""),
+                $int,
+                $answer->answerfrom,
+                $answer->answersize,
+                "$domain:",
+                map { $_->address } grep { $_->type eq "A" } $answer->answer
+            );
         }
         sleep 0.01;
    }
