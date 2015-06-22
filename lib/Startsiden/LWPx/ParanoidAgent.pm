@@ -8,7 +8,7 @@ use base 'LWPx::ParanoidAgent';
 use Cache::LRU;
 
 our $cache = Cache::LRU->new( size => 1000 );
-our $cache_ttl = 60;
+our $cache_ttl = 24 * 60 * 60;
 
 sub _resolve {
     my ($self, $host, $request, $timeout, $depth) = @_;
@@ -21,7 +21,7 @@ sub _resolve {
         $cache->remove($cache_key);
     }
     my @res = $self->SUPER::_resolve($host, $request, $timeout, $depth);
-   
+
     $cache->set(
         $cache_key => [ [ @res ], time + $cache_ttl + 0.5 ],
     );
