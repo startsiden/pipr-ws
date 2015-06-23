@@ -1,0 +1,4 @@
+# test domain
+127.0.0.1 www.google.com google.com
+
+127.0.0.2 fake_host
