@@ -73,6 +73,13 @@ get '/*/p/**' => sub {
 
     $url = get_url("$site/p");
 
+    my $site_config = config->{sites}->{ $site };
+    $site_config->{site} = $site;
+    if (config->{restrict_targets}) {
+        return do { debug "illegal site: $site";   status 'not_found' } if ! $site_config;
+    }
+    var 'site_config' => $site_config;
+
     my $file = get_image_from_url($url);
 
     # try to get stat info
