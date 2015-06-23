@@ -38,4 +38,8 @@ $ua->_parse_etc_hosts('t/data/etc_hosts.txt');
 is_deeply [$ua->_resolve("www.google.com")], ['127.0.0.1'], 'Reads correctly from hostsfile';
 is_deeply [$ua->_resolve("fake_host")], ['127.0.0.2'], 'Reads correctly from hostsfile';
 
+# MAke sure we don't crash with faulty hosts files
+$ua->_parse_etc_hosts('/etc/passwd');
+$ua->_parse_etc_hosts('t/data/non-existent-file');
+
 done_testing;

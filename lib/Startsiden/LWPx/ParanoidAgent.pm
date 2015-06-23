@@ -60,5 +60,5 @@ sub _parse_etc_hosts {
        $etc_hosts->{last_cached_ts} = time;
        close $fh;
     }
-    return $etc_hosts->{hosts};
+    return $etc_hosts->{hosts} || {};
 }
