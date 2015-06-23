@@ -13,8 +13,8 @@ my @res1 = $ua->_resolve("www.google.com");
 sleep 1;
 
 my ($res_cached, $expires_at) = @{ $Startsiden::LWPx::ParanoidAgent::cache->get("www.google.com") };
-ok(($expires_at - time) < ( 60 * 60 * 24 ), 'cache ttl is less than (60 * 60 * 24): ' . ($expires_at - time));
-ok(($expires_at - time) > ( (60 * 60 * 24) - 2 ), 'cache ttl is greater than ((60 * 60 * 24) - 2): ' . ($expires_at - time));
+ok(($expires_at - time) < ( 3600 ), 'cache ttl is less than (3600): ' . ($expires_at - time));
+ok(($expires_at - time) > ( 3598 ), 'cache ttl is greater than (3600 - 2): ' . ($expires_at - time));
 
 my @res_after_cached = $ua->_resolve("www.google.com");
 
@@ -34,5 +34,8 @@ my @res3 = $ua->_resolve("www.google.com");
 my ($res_cached3, $expires_at3) = @{ $Startsiden::LWPx::ParanoidAgent::cache->get("www.google.com") };
 ok(($expires_at3 - time) > 58, 'cache ttl is greater than 58:' .($expires_at3 - time));
 
+$ua->_parse_etc_hosts('t/data/etc_hosts.txt');
+is_deeply [$ua->_resolve("www.google.com")], ['127.0.0.1'], 'Reads correctly from hostsfile';
+is_deeply [$ua->_resolve("fake_host")], ['127.0.0.2'], 'Reads correctly from hostsfile';
 
 done_testing;
