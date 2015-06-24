@@ -27,7 +27,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '15.26.4';
+our $VERSION = '15.26.5';
 
 use Net::SSL ();
 BEGIN {
@@ -72,6 +72,13 @@ get '/*/p/**' => sub {
     my ( $site, $url ) = splat;
 
     $url = get_url("$site/p");
+
+    my $site_config = config->{sites}->{ $site };
+    $site_config->{site} = $site;
+    if (config->{restrict_targets}) {
+        return do { debug "illegal site: $site";   status 'not_found' } if ! $site_config;
+    }
+    var 'site_config' => $site_config;
 
     my $file = get_image_from_url($url);
 

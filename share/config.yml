@@ -57,7 +57,7 @@ sites:
      allowed_targets: [ '\A https?://([^/+]\.)?abcnyheter\.no', 'http://csp\.picsearch\.com', 'https://abcnyheter\.drpublish\.aptoma\.no/', 'http://smooth-storage\.cdn\.aptoma\.no/', 'http://ws\.vipr\.startsiden\.no/' , 'https://wsvipr\.startsiden\.no']
      shortcuts:
          /?files: http://%ENV_SUBDOMAIN%.abcnyheter.no/files%s
-         /?drf(ront)?: http://smooth-storage.cdn.aptoma.no/users/drf-abcnyheter%s
+         /?drf(ront)?: http://abcnyheter.cdn.drfront.aptoma.no/users/drf-abcnyheter%s
          /?drp: https://abcnyheter.drpublish.aptoma.no/out/images/article%s
 
 
