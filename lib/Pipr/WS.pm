@@ -173,7 +173,7 @@ get '/*/*/*/**' => sub {
                 w => $width, h => $height, s => 'force'
             },
             {
-                format => 'jpeg', quality => '80', cache => $thumb_cache, compression => 9
+                format => 'jpeg', quality => '100', cache => $thumb_cache, compression => 7
             }
         }
         when ('cropped') {
@@ -186,7 +186,7 @@ get '/*/*/*/**' => sub {
                 },
               ],
             {
-                format => 'jpeg', quality => '80', cache => $thumb_cache, compression => 9
+                format => 'jpeg', quality => '100', cache => $thumb_cache, compression => 7
             };
         }
         when ('thumbnail') {
@@ -199,7 +199,7 @@ get '/*/*/*/**' => sub {
                 },
               ],
             {
-                format => 'jpeg', quality => 80, cache => $thumb_cache, compression => 9
+                format => 'jpeg', quality => '100', cache => $thumb_cache, compression => 7
             };
         }
         default {
@@ -296,7 +296,7 @@ sub download_url {
 
     debug "fetching from the net... ($url)";
 
-    my $res = eval { $ua->get($url, ':content_file' => $local_file); }; 
+    my $res = eval { $ua->get($url, ':content_file' => $local_file); };
     debug "Error getting $url: (".(request->uri).")" . ($res ? $res->status_line : $@) . Dumper($site_config)
       unless ($res && $res->is_success);
 
@@ -331,14 +331,14 @@ sub _url2file {
 }
 
 sub expand_macros {
-    my ($str, $host) = @_; 
+    my ($str, $host) = @_;
 
-    my $map = { 
+    my $map = {
       qa  => 'kua',
       dev => 'dev',
       kua => 'kua',
     };
-    
+
     $host =~ m{ \A (?:(dev|kua|qa)[\.-])pipr }gmx;
     my $env_subdomain = $1 && $map->{$1} || 'www';
     $str =~ s{%ENV_SUBDOMAIN%}{$env_subdomain}gmx;
@@ -351,7 +351,7 @@ true;
 =pod
 
 =head1 AUTHOR
- 
+
    Nicolas Mendoza <mendoza@pvv.ntnu.no>
 
 =head1 ABSTRACT
