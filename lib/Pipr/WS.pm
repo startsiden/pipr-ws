@@ -27,7 +27,7 @@ use Cwd;
 use URI;
 use URI::Escape;
 
-our $VERSION = '15.38.1';
+our $VERSION = '15.38.2';
 
 use Net::SSL ();
 BEGIN {
@@ -359,4 +359,3 @@ true;
    Picture Proxy/Provider/Presenter
 
 =cut
-
