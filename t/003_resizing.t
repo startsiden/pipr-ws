@@ -60,7 +60,7 @@ Pipr::WS->config->{'sites'}->{'test4'} = {
   allowed_targets => [ 'https://brukere.startsiden.no/' ],
 };
 
-response_status_is ['GET' => "/test4/resized/30x30/https://brukere.startsiden.no/static/img/header_logo.png"], 200, "SSL works";
+#response_status_is ['GET' => "/test4/resized/30x30/https://brukere.startsiden.no/static/img/header_logo.png"], 200, "SSL works";
 
 # TODO: patterns without / has to be checked as if they had a slash (against host), or else: https://foo.com matches https://foo.com@someother.server.com
 
