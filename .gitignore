@@ -1,7 +1,7 @@
-Makefile
-MYMETA.yml
-cache
-thumb_cache
-logs
-MANIFEST
 MANIFEST.skip
+META.yml
+MYMETA.json
+MYMETA.yml
+MYMETA.yml
+Makefile
+blib/
