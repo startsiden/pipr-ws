@@ -12,6 +12,7 @@ use Dancer::MIME;
 use Dancer::Plugin;
 use File::Path;
 use GD::Image;
+use Image::Magick;
 use JSON::Any;
 use List::Util qw( min max );
 use Object::Signature;
@@ -204,13 +205,24 @@ sub thumbnail {
 
     # Do not lose colors on images
     GD::Image->trueColor(1);
-    
-    # load source image
-    my $src_img = GD::Image->new($file) or do {
+
+    # Using Image::Magick to get the image format, since GD does not recognize all JPG files
+    my $img_format = ( Image::Magick->new->Ping($file) )[3];
+
+    my %read_image = (
+        'GIF'  => \&GD::Image::newFromGif,
+        'JPEG' => \&GD::Image::newFromJpeg,
+        'PNG'  => \&GD::Image::newFromPng
+    );
+
+    # Load source image
+    my $src_img = ( exists $read_image{$img_format} ? $read_image{$img_format}->($file) : undef );
+
+    if ( !defined $src_img ) {
         error "can't load image '$file'";
         status 500;
         return '500 Internal Server Error';
-    };
+    }
 
     # original sizes
     my ( $src_w, $src_h ) = $src_img->getBounds;
@@ -494,4 +506,3 @@ See http://dev.perl.org/licenses/ for more information.
 =cut
 
 1;
-
