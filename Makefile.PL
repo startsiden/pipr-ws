@@ -47,6 +47,4 @@ install_share 'share';
 
 auto_install;
 
-tests_recursive;
-
 WriteAll;
