@@ -43,6 +43,8 @@ dpkg_requires 'libjs-jquery' => 0;
 
 install_script glob('bin/*');
 
+install_share 'share';
+
 auto_install;
 
 WriteAll;
