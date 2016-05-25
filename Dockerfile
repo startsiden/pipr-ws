@@ -18,5 +18,6 @@ RUN installdeps
 ADD . .
 
 EXPOSE 3000
+EXPOSE 3443
 
 CMD ["bin/pipr-ws"]
