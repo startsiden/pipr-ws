@@ -12,7 +12,7 @@ use Dancer::MIME;
 use Dancer::Plugin;
 use File::Path;
 use GD::Image;
-use Image::Magick;
+use Image::Info qw/image_type/;
 use JSON::Any;
 use List::Util qw( min max );
 use Object::Signature;
@@ -206,23 +206,36 @@ sub thumbnail {
     # Do not lose colors on images
     GD::Image->trueColor(1);
 
-    # Using Image::Magick to get the image format, since GD does not recognize all JPG files
-    my $img_format = ( Image::Magick->new->Ping($file) )[3];
+    # Using Image::Info to determine the image type, since GD::Image does not recognize all JPG files
+    my $image_type = image_type($file);
 
+    if ( exists $image_type->{error} ) {
+        error "Unrecognized file format for image file '$file'";
+        status 500;
+        return '500 Internal Server Error';
+    }
+
+    # Aptoma/DrPublish supports GIF, JPEG, and PNG only
     my %read_image = (
         'GIF'  => \&GD::Image::newFromGif,
         'JPEG' => \&GD::Image::newFromJpeg,
         'PNG'  => \&GD::Image::newFromPng
     );
 
-    # Load source image
-    my $src_img = ( exists $read_image{$img_format} ? $read_image{$img_format}->($file) : undef );
+    my $file_type = $image_type->{file_type};
 
-    if ( !defined $src_img ) {
-        error "can't load image '$file'";
+    if ( !exists $read_image{$file_type} ) {
+        error "Unsupported image format '$file_type' for image file '$file'. GIF, JPEG, and PNG are supported.";
         status 500;
         return '500 Internal Server Error';
     }
+
+    # Load source image
+    my $src_img = $read_image{$file_type}->($file) or do {
+        error "Cannot load image file '$file'";
+        status 500;
+        return '500 Internal Server Error';
+    };
 
     # original sizes
     my ( $src_w, $src_h ) = $src_img->getBounds;
