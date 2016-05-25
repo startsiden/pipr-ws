@@ -216,22 +216,34 @@ sub thumbnail {
     }
 
     # Aptoma/DrPublish supports GIF, JPEG, and PNG only
-    my %read_image = (
-        'GIF'  => \&GD::Image::newFromGif,
-        'JPEG' => \&GD::Image::newFromJpeg,
-        'PNG'  => \&GD::Image::newFromPng
+    my %valid_image_types = (
+        'GIF'  => 1,
+        'JPEG' => 1,
+        'PNG'  => 1
     );
 
     my $file_type = $image_type->{file_type};
 
-    if ( !exists $read_image{$file_type} ) {
+    if ( !exists $valid_image_types{$file_type} ) {
         error "Unsupported image format '$file_type' for image file '$file'. GIF, JPEG, and PNG are supported.";
         status 500;
         return '500 Internal Server Error';
     }
 
+    my $src_img;
+
     # Load source image
-    my $src_img = $read_image{$file_type}->($file) or do {
+    if ( $file_type eq 'JPG') {
+        $src_img = GD::Image->newFromJpeg( $file );
+    } elsif ( $file_type eq 'PNG') {
+        $src_img = GD::Image->newFromPng( $file );
+    } elsif ( $file_type eq 'GIF') {
+        $src_img = GD::Image->newFromGif( $file );
+    } else {
+        $src_img = undef;
+    }
+
+    if ( !defined $src_img) {
         error "Cannot load image file '$file'";
         status 500;
         return '500 Internal Server Error';
