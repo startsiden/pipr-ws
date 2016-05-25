@@ -1,14 +1,14 @@
 #!/bin/bash
 
 #
-# Usage: script/installdeps <branchname>
+# Usage: bin/installdeps <branchname>
 #
 # Example:
 #        # Install dependencies, preferring production packages
-#        script/installdeps
+#        bin/installdeps
 #
 #        # Install dependencies preferring -develop packages
-#        script/installdeps develop
+#        bin/installdeps develop
 #
 #
 
@@ -36,6 +36,7 @@ function module_to_packages() {
 
 if [ -e 'Makefile.PL' ]; then
   if [ -e '/etc/debian_version' ]; then
+    sudo apt-get update
     if ! command -v apt-file 2>&1 >/dev/null; then
       echo "Installing apt-file";
       sudo $APTCMD -qq install apt-file
