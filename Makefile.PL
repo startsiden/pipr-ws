@@ -45,7 +45,7 @@ install_script glob('bin/*');
 
 install_share 'share';
 
-auto_install
+auto_install;
 
 tests_recursive;
 
