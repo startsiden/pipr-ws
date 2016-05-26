@@ -13,6 +13,7 @@ configure_requires 'Module::Install' => 0;
 
 # Perl modules needed for running the tests
 test_requires 'Test::More';
+test_requires 'Image::Magick';
 
 # Perl modules needed at run-time
 requires 'YAML';
