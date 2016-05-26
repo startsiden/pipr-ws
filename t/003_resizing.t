@@ -55,7 +55,7 @@ Pipr::WS->config->{'sites'}->{'test3'} = {
 
 #response_status_is ['GET' => "/test3/resized/30x30/https://abcnyheter.drpublish.aptoma.no/out/images/article//2014/06/16/194406041/1/stor/VI__15__Bombingen_av_Victoria_terrasse.jpg"], 200, "SSL works";
 #response_status_is ['GET' => "/test3/resized/30x30/https://abcnyheter.drpublish.aptoma.no/out/images/article/2016/05/10/195216044/1/hovedbilde/2402127.jpg"], 200, "SSL works";
-my $response = dancer_response GET => '/test3/resized/30x30/https://abcnyheter.drpublish.aptoma.no/out/images/article//2014/06/16/194406041/1/stor/VI__15__Bombingen_av_Victoria_terrasse.jpg';
+my $response = dancer_response GET => '/test3/resized/30x30/https://abcnyheter.drpublish.aptoma.no/out/images/article/2016/05/10/195216044/1/hovedbilde/2402127.jpg';
 is( $response->{status}, 200, 'Response status is 200' );
 use Data::Dumper;
 diag "Response:\n", Dumper($response), "\n";
