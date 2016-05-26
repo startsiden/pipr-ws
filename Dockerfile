@@ -3,6 +3,9 @@ FROM debian:wheezy
 # Add startsiden repositories
 RUN echo "deb http://wheezyapt.startsiden.no/ wheezy main contrib non-free" >> /etc/apt/sources.list
 RUN echo "deb http://wheezyaptbuilder-dev.startsiden.no/ wheezy main contrib non-free" >> /etc/apt/sources.list
+
+# Running non-interactively
+# See https://github.com/phusion/baseimage-docker/issues/58
 RUN apt-get -y update
 RUN DEBIAN_FRONTEND=noninteractive apt-get -q -y --allow-unauthenticated install apt-file
 RUN apt-file update
