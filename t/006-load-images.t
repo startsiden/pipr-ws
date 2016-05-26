@@ -6,10 +6,8 @@ use warnings;
 
 use File::Spec::Functions;
 use FindBin;
+use Image::Info qw/image_type/;
 use Test::More;
-use Image::Magick;
-
-my $im = Image::Magick->new;
 
 my %testfiles = (
     'valid.jpg' => 'JPEG',
@@ -21,8 +19,10 @@ my %testfiles = (
 subtest 'Verify that images are loaded correctly' => sub {
     for my $file ( keys %testfiles ) {
         my $image = catfile( $FindBin::Bin, 'data', $file );
-        my $format = ( $im->Ping($image) )[3];
-        is( $format, $testfiles{$file}, "Image is $testfiles{$file}" );
+        my $image_type = image_type($image);
+        ok( !exists $image_type->{error}, 'No errors when determining image type' );
+        my $file_type = $image_type->{file_type};
+        is( $file_type, $testfiles{$file}, "Image is $testfiles{$file}" );
     }
 };
 
