@@ -12,12 +12,6 @@ all_from 'lib/Pipr/WS.pm';
 configure_requires 'Module::Install' => 0;
 
 # Perl modules needed for running the tests
-test_requires 'Dancer::Test' => 0;
-test_requires 'File::Slurp' => 0;
-test_requires 'GD::Image' => 0;
-test_requires 'Image::Info' => 0;
-test_requires 'Image::Size' => 0;
-test_requires 'JSON' => 0;
 test_requires 'Test::More' => 0;
 
 # Perl modules needed at run-time
@@ -45,7 +39,7 @@ requires 'File::Share' => 0;
 requires 'File::Slurp' => 0;
 requires 'Template::Plugin::DataPrinter' => 0;
 
-dpkg_requires 'libjs-jquery' => 0;
+# dpkg_requires 'libjs-jquery' => 0;
 
 install_script glob('bin/*');
 
