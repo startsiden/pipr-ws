@@ -39,7 +39,7 @@ requires 'File::Share' => 0;
 requires 'File::Slurp' => 0;
 requires 'Template::Plugin::DataPrinter' => 0;
 
-# dpkg_requires 'libjs-jquery' => 0;
+dpkg_requires 'libjs-jquery' => 0;
 
 install_script glob('bin/*');
 
