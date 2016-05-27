@@ -233,7 +233,7 @@ sub thumbnail {
     my $src_img;
 
     # Load source image
-    if ( $file_type eq 'JPG') {
+    if ( $file_type eq 'JPEG') {
         $src_img = GD::Image->newFromJpeg( $file );
     } elsif ( $file_type eq 'PNG') {
         $src_img = GD::Image->newFromPng( $file );
