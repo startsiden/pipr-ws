@@ -1,10 +1,15 @@
-use Test::More;
+#!/usr/bin/env perl
+
+use utf8;
 use strict;
 use warnings;
-use Data::Dumper;
-use Image::Size;
-use File::Temp qw/tempdir/;
 
+use Data::Dumper;
+use File::Temp qw/tempdir/;
+use Image::Size;
+use Test::More;
+
+# The order is important
 use_ok 'Pipr::WS';
 use Dancer::Test;
 

@@ -1,14 +1,18 @@
-use Test::More;
+#!/usr/bin/env perl
+
+use utf8;
 use strict;
 use warnings;
+
 use Data::Dumper;
-use Image::Size;
-use File::Temp qw/tempdir/;
-use JSON;
 use File::Slurp;
+use File::Temp qw/tempdir/;
+use Image::Size;
+use JSON;
+use Test::More;
 
+# The order is important
 use_ok 'Pipr::WS';
-
 use Dancer::Test;
 
 my $test_image_path = "public/images/test.png";
