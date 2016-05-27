@@ -306,10 +306,10 @@ sub download_url {
 }
 
 sub get_url {
-    my ($strip_prefix) = @_;
+    my $strip_prefix = shift // '';
 
     my $request_uri = request->request_uri();
-    $request_uri =~ s{ \A /? \Q$strip_prefix\E /? }{}gmx if ( defined $request_uri && defined $request_uri );
+    $request_uri =~ s{ \A /? \Q$strip_prefix\E /? }{}gmx if ( defined($request_uri) && $strip_prefix );
 
     # if we get an URL like: http://pipr.opentheweb.org/overblikk/resized/300x200/http://g.api.no/obscura/external/9E591A/100x510r/http%3A%2F%2Fnifs-cache.api.no%2Fnifs-static%2Fgfx%2Fspillere%2F100%2Fp1172.jpg
     # We want to re-escape the external URL in the URL (everything is unescaped on the way in)
