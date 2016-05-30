@@ -17,8 +17,9 @@ COPY docker/files/installdeps /usr/local/bin
 WORKDIR /pipr-ws
 
 ADD Makefile.PL .
-RUN mkdir -p lib/Pipr
+RUN mkdir -p lib/Pipr share
 ADD lib/Pipr/WS.pm lib/Pipr/
+ADD share/ share/
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -q -y install sudo
 RUN DEBIAN_FRONTEND=noninteractive installdeps
