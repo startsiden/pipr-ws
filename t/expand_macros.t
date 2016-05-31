@@ -1,5 +1,8 @@
-use warnings;
+#!/usr/bin/env perl
+
+use utf8;
 use strict;
+use warnings;
 
 use Pipr::WS;
 use Test::More;

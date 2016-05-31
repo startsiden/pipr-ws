@@ -12,6 +12,7 @@ use Dancer::MIME;
 use Dancer::Plugin;
 use File::Path;
 use GD::Image;
+use Image::Info qw/image_type/;
 use JSON::Any;
 use List::Util qw( min max );
 use Object::Signature;
@@ -204,10 +205,46 @@ sub thumbnail {
 
     # Do not lose colors on images
     GD::Image->trueColor(1);
-    
-    # load source image
-    my $src_img = GD::Image->new($file) or do {
-        error "can't load image '$file'";
+
+    # Using Image::Info to determine the image type, since GD::Image does not recognize all JPG files
+    my $image_type = image_type($file);
+
+    if ( exists $image_type->{error} ) {
+        error "Unrecognized file format for image file '$file'";
+        status 500;
+        return '500 Internal Server Error';
+    }
+
+    # Aptoma/DrPublish supports GIF, JPEG, and PNG only
+    my %valid_image_types = (
+        'GIF'  => 1,
+        'JPEG' => 1,
+        'PNG'  => 1
+    );
+
+    my $file_type = $image_type->{file_type};
+
+    if ( !exists $valid_image_types{$file_type} ) {
+        error "Unsupported image format '$file_type' for image file '$file'. GIF, JPEG, and PNG are supported.";
+        status 500;
+        return '500 Internal Server Error';
+    }
+
+    my $src_img;
+
+    # Load source image
+    if ( $file_type eq 'JPEG') {
+        $src_img = GD::Image->newFromJpeg( $file );
+    } elsif ( $file_type eq 'PNG') {
+        $src_img = GD::Image->newFromPng( $file );
+    } elsif ( $file_type eq 'GIF') {
+        $src_img = GD::Image->newFromGif( $file );
+    } else {
+        $src_img = undef;
+    }
+
+    if ( !defined $src_img) {
+        error "Cannot load image file '$file'";
         status 500;
         return '500 Internal Server Error';
     };
@@ -494,4 +531,3 @@ See http://dev.perl.org/licenses/ for more information.
 =cut
 
 1;
-

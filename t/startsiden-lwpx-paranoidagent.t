@@ -3,9 +3,8 @@
 use strict;
 use warnings;
 
-use Test::More;
-
 use Startsiden::LWPx::ParanoidAgent;
+use Test::More;
 
 my $ua = Startsiden::LWPx::ParanoidAgent->new();
 

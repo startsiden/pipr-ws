@@ -1,14 +1,14 @@
 #!/bin/bash
 
 #
-# Usage: script/installdeps <branchname>
+# Usage: bin/installdeps <branchname>
 #
 # Example:
 #        # Install dependencies, preferring production packages
-#        script/installdeps
+#        bin/installdeps
 #
 #        # Install dependencies preferring -develop packages
-#        script/installdeps develop
+#        bin/installdeps develop
 #
 #
 
@@ -36,6 +36,7 @@ function module_to_packages() {
 
 if [ -e 'Makefile.PL' ]; then
   if [ -e '/etc/debian_version' ]; then
+    sudo apt-get update
     if ! command -v apt-file 2>&1 >/dev/null; then
       echo "Installing apt-file";
       sudo $APTCMD -qq install apt-file
@@ -43,7 +44,7 @@ if [ -e 'Makefile.PL' ]; then
     echo -n "Checking if Module::Install::Debian is present, installing if not...";
     perl -MModule::Install::Debian -MModule::Install::Base -wle 'print "OK";' || sudo $APTCMD install libmodule-install-debian-perl libmodule-install-perl || die "Not found, did you add the Startsiden repositories?";
     echo -n "Checking if Module::Install::Debian is newer than 0.040...";
-    perl -wle 'use Module::Install::Debian 0.040; print "OK";' || die "Please make sure you have a newer Module::Install::Debian module (>=0.040)"; 
+    perl -wle 'use Module::Install::Debian 0.040; print "OK";' || die "Please make sure you have a newer Module::Install::Debian module (>=0.040)";
     echo "Updating apt-file cache..."
     sudo apt-file update > /dev/null
 
@@ -52,18 +53,18 @@ if [ -e 'Makefile.PL' ]; then
 
     echo "Fetching and installing Debian dependencies from Makefile.PL...";
     grep dpkg_requires Makefile.PL | perl -MData::Dumper -MModule::Install::Debian -e '
-      *Module::Install::Debian::can_run = sub { 1 }; 
+      *Module::Install::Debian::can_run = sub { 1 };
       *Module::Install::Debian::_dpkg_install = sub {
           my ($self, $pkg) = @_;
           return "sudo apt-get install --force-yes --yes $pkg";
       };
       my $missing_packages = {};
-      my $mid = bless {}, "Module::Install::Debian"; 
+      my $mid = bless {}, "Module::Install::Debian";
       sub dpkg_requires {
         my $res = $mid->dpkg_requires(@_);
         map { $missing_packages->{$_->[0]} = $_->[1]; } @{$res} if $?;
         1;
-      }; 
+      };
       while (eval(<>)) {};
       if (scalar keys %{$missing_packages}) {
           print "\e[1;31mERROR:\e[0m Missing packages:\n";
@@ -96,7 +97,7 @@ if [ -e 'Makefile.PL' ]; then
     echo -e "\e[1;32mOK\e[0m";
     exit 0;
   else
-    if ! command -v cpanm 2>&1 >/dev/null; then 
+    if ! command -v cpanm 2>&1 >/dev/null; then
       echo "Installing CPANMinus...";
       ( curl -L http://cpanmin.us || wget -O - http://cpanmin.us) | perl - App::cpanminus
       echo "Installing dependencies via CPANMinus...";
@@ -107,5 +108,3 @@ else
   echo "Only Makefile.PL supported for now";
   exit 1;
 fi;
-
-
