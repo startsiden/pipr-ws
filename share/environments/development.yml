@@ -44,8 +44,19 @@ sites:
      sizes: [ '30x30', '100x30', '30x', 'x30' ]
      allowed_targets: [ 'public/images/test.png', 'non-existing-image', 'http://dghasdfguasdfhgiouasdhfguiohsdfg/non-existing-image' ]
   abcn:
-     sizes: [ '972x', '680x', '486x', '243x' ]
-     allowed_targets: [ 'http://dev.abcnyheter.no', '/files', 'files', 'drfront', 'http://csp.picsearch.com', 'https://abcnyheter.drpublish.aptoma.no/', 'http://smooth-storage.cdn.aptoma.no/' ]
+     sizes: [ '980x', '972x', '680x', '486x', '243x', '210x', '122x' ]
+     allowed_targets:
+         - '\A https?://([^/+]\.)?abcnyheter\.no'
+         - 'http://csp\.picsearch\.com'
+         - 'https://abcnyheter\.drpublish\.aptoma\.no/'
+         - 'http://smooth-storage\.cdn\.aptoma\.no/'
+         - 'http://ws\.vipr\.startsiden\.no/'
+         - 'https://wsvipr\.startsiden\.no'
+         - 'http://dev.abcnyheter.no'
+         - '/files'
+         - 'files'
+         - 'drfront'
      shortcuts:
-         /?files: http://dev.abcnyheter.no/files%s
-         /?drfront: http://smooth-storage.cdn.aptoma.no/users/drf-abcnyheter%s
+         /?files: http://%ENV_SUBDOMAIN%.abcnyheter.no/files%s
+         /?drf(ront)?: http://abcnyheter.cdn.drfront.aptoma.no/users/drf-abcnyheter%s
+         /?drp: https://abcnyheter.drpublish.aptoma.no/out/images/article%s
