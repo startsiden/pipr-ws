@@ -12,13 +12,14 @@ all_from 'lib/Pipr/WS.pm';
 configure_requires 'Module::Install' => 0;
 
 # Perl modules needed for running the tests
-test_requires 'Test::More';
+test_requires 'Test::More' => 0;
 
 # Perl modules needed at run-time
 requires 'YAML';
 requires 'Crypt::SSLeay'; # SSL Support
 requires 'Dancer' => 1.3118;
 requires 'GD' => 0;
+requires 'Image::Info' => 0;
 requires 'IO::Socket::SSL' => 0;
 requires 'JSON::Any' => 0;
 requires 'List::Util' => 0;
@@ -44,9 +45,6 @@ install_script glob('bin/*');
 
 install_share 'share';
 
-auto_install
-
-tests_recursive;
+auto_install;
 
 WriteAll;
-
