@@ -1,33 +1,31 @@
 package Pipr::WS;
 use v5.10;
 
-use Dancer;
+use Cwd;
 use Dancer::Config;
 use Dancer::Plugin::Thumbnail;
-
-#use Dancer::Plugin::ConfigJFDI;
+use Dancer;
 use Data::Dumper;
+use Digest::MD5 qw/md5_hex/;
 use Encode;
+use File::Path;
+use File::Share qw/:all/;
 use File::Slurp;
-use File::Share ':all';
+use File::Spec;
 use File::Spec;
 use File::Type;
 use HTML::TreeBuilder;
+use IO::Socket::SSL qw/SSL_VERIFY_NONE/;
 use Image::Size;
-use IO::Socket::SSL qw( SSL_VERIFY_NONE );
-use Startsiden::LWPx::ParanoidAgent;
 use LWP::UserAgent::Cached;
 use List::Util;
-use Digest::MD5 qw(md5_hex);
-use File::Spec;
-use File::Path;
 use Net::DNS::Resolver;
-use POSIX 'strftime';
-use Cwd;
-use URI;
+use POSIX qw/strftime/;
+use Startsiden::LWPx::ParanoidAgent;
 use URI::Escape;
+use URI;
 
-our $VERSION = '15.38.4';
+our $VERSION = '15.38.5';
 
 use Net::SSL ();
 BEGIN {
