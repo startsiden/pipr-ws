@@ -25,7 +25,7 @@ use Startsiden::LWPx::ParanoidAgent;
 use URI::Escape;
 use URI;
 
-our $VERSION = '15.38.5';
+our $VERSION = '15.38.6';
 
 use Net::SSL ();
 BEGIN {
