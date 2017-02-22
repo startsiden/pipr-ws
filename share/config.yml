@@ -53,7 +53,7 @@ sites:
      sizes: [ '972x', '486x', '600x200', '300x300', '600x300', '200x600', '150x400', '400x150', '300x200', '400x200', '200x400' ]
      allowed_targets: [ 'http' ]
   abcn:
-     sizes: [ '980x', '972x', '680x', '654x', '486x', '327x', '243x', '210x', '164x', '122x', '65x' ]
+     sizes: [ '980x', '972x', '680x', '654x', '486x', '327x', '243x', '210x', '164x', '122x', '65x', '244x', '150x', '300x' ]
      allowed_targets: [ '\A https?://([^/+]\.)?abcnyheter\.no', 'http://csp\.picsearch\.com', 'https://abcnyheter\.drpublish\.aptoma\.no/', 'http://smooth-storage\.cdn\.aptoma\.no/', 'http://ws\.vipr\.startsiden\.no/' , 'https://wsvipr\.startsiden\.no']
      shortcuts:
          /?files: http://%ENV_SUBDOMAIN%.abcnyheter.no/files%s
