@@ -61,11 +61,23 @@ Deployment:
 
   It includes init.d for starman, cronjob for cleaning up cache once a day, varnish setup and nginx setup.
 
-Tests:
-  prove -lv t
+## Running the Pipr application manually on your local
 
-Development:
-  bin/app.pl
+#### Ask guys from operations to add you login to gcr.io
+You need a user account in order to pull our base images with docker.
 
-Production:
-  bin/app.pl --environment production
+#### Install the `gcloud` command line tool
+It can be found here: https://cloud.google.com/sdk/docs/quickstart-mac-os-x
+
+#### Initialize the `gcloud` command line tool
+`$ gcloud init`
+
+#### Authenticate docker with Google Cloud Registry
+`$ docker login -u _token -p "$(gcloud auth print-access-token)" https://eu.gcr.io`
+
+#### Build and run the server and assets watch
+`$ docker-compose up --build`
+
+#### Build and run test
+`$ docker-compose -f docker-compose-test.yml up --build`
+

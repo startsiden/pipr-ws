@@ -44,7 +44,7 @@ sites:
      sizes: [ '30x30', '100x30', '30x', 'x30' ]
      allowed_targets: [ 'public/images/test.png', 'non-existing-image', 'http://dghasdfguasdfhgiouasdhfguiohsdfg/non-existing-image' ]
   abcn:
-     sizes: [ '980x', '972x', '680x', '654x', '486x', '327x', '243x', '210x', '164x', '122x', '65x' ]
+     sizes: [ '980x', '972x', '680x', '654x', '486x', '327x', '243x', '210x', '164x', '122x', '65x', '244x', '150x', '300x' ]
      allowed_targets:
          - '\A https?://([^/+]\.)?abcnyheter\.no'
          - 'http://csp\.picsearch\.com'

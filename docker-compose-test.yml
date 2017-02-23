@@ -1,0 +1,14 @@
+version: '2'
+services:
+    test:
+        build:
+            context: .
+            dockerfile: Dockerfile.test
+        image: pipr-ws-test
+        container_name: run-pipr-ws-test
+        command: prove -lqcfr -j 8 t/
+        volumes:
+            - ./lib:/root/lib
+            - ./bin:/root/bin
+            - ./share:/root/share
+            - ./t:/root/t
