@@ -1,0 +1,6 @@
+FROM pipr-ws:latest
+
+RUN apt-get -y --force-yes install libtap-formatter-html-perl libtap-formatter-junit-perl
+
+
+CMD ciprove -lvr -j8 t/
