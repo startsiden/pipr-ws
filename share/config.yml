@@ -59,7 +59,9 @@ sites:
          /?files: http://%ENV_SUBDOMAIN%.abcnyheter.no/files%s
          /?drf(ront)?: http://abcnyheter.cdn.drfront.aptoma.no/users/drf-abcnyheter%s
          /?drp: https://abcnyheter.drpublish.aptoma.no/out/images/article%s
-
+  atv:
+     sizes: [ '500x', '700x', '900x', '1200x', '1700x' ]
+     allowed_targets: [ 'https://abcnyheter\.drpublish\.aptoma\.no/', 'https://wsvipr\.startsiden\.no' ]
 
 log_path: /var/log
 log_file: pipr-ws_app.log
