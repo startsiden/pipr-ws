@@ -8,8 +8,8 @@ services:
               DEBUG: 1
         image: pipr-ws
         container_name: run-pipr-ws
-        dns:
-            - 10.4.4.37
+        # dns:
+        #     - 10.4.4.37
         volumes:
             - ./lib:/root/lib
             - ./bin:/root/bin
