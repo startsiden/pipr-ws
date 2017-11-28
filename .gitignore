@@ -6,3 +6,5 @@ MYMETA.yml
 Makefile
 blib/
 .idea/
+share/cache
+share/thumb_cache

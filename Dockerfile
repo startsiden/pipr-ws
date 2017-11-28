@@ -1,31 +1,24 @@
-FROM debian:wheezy
+FROM eu.gcr.io/divine-arcade-95810/perl:jessie
+MAINTAINER tore.aursand@startsiden.no
 
-# Add startsiden repositories
-RUN echo "deb http://wheezyapt.startsiden.no/ wheezy main contrib non-free" >> /etc/apt/sources.list
-RUN echo "deb http://wheezyaptbuilder-dev.startsiden.no/ wheezy main contrib non-free" >> /etc/apt/sources.list
+RUN apt-get update && apt-get install -y --force-yes libcrypt-ssleay-perl libextutils-pkgconfig-perl libgd-perl && rm -rf /var/lib/apt/lists/*
 
-# Running non-interactively
-# See https://github.com/phusion/baseimage-docker/issues/58
-RUN apt-get -y update
-RUN DEBIAN_FRONTEND=noninteractive apt-get -q -y --allow-unauthenticated install apt-file
-RUN apt-file update
-RUN DEBIAN_FRONTEND=noninteractive apt-get -q -y --allow-unauthenticated install apt-utils
-RUN DEBIAN_FRONTEND=noninteractive apt-get -q -y install --allow-unauthenticated cpan-libmodule-install-debian-perl libgdbm3 libmodule-install-perl
-RUN DEBIAN_FRONTEND=noninteractive apt-get -q -y install --allow-unauthenticated libjs-jquery
+COPY cpanfile .
 
-COPY docker/files/installdeps /usr/local/bin
-WORKDIR /pipr-ws
+ARG PINTO_STACK
+ENV PINTO_STACK ${PINTO_STACK:-develop}
 
-ADD Makefile.PL .
-RUN mkdir -p lib/Pipr share
-ADD lib/Pipr/WS.pm lib/Pipr/
-ADD share/ share/
+ENV PERL_CPANM_OPT --quiet --no-man-pages --skip-satisfied --mirror http://cpan.uib.no/ --mirror http://cpan.cpantesters.org --mirror http://cpan.metacpan.org --mirror http://admin:admin@pinto.startsiden.no/stacks/$PINTO_STACK
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get -q -y install sudo
-RUN DEBIAN_FRONTEND=noninteractive installdeps
+RUN cpanm --notest --installdeps .
 
-# Add code base
-ADD . .
+ADD https://www.random.org/strings/?num=16&len=16&digits=on&upperalpha=on&loweralpha=on&unique=on&format=plain&rnd=new /tmp/CACHEBUST
+RUN cpanm --notest --with-feature=own --installdeps .
+
+ADD https://www.random.org/strings/?num=16&len=16&digits=on&upperalpha=on&loweralpha=on&unique=on&format=plain&rnd=new /tmp/CACHEBUST
+RUN cpanm --with-feature=own --reinstall --installdeps .
+
+COPY . .
 
 EXPOSE 3000
 
